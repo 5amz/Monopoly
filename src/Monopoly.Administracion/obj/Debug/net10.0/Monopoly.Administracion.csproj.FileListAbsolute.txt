@@ -1,0 +1,11 @@
+C:\Users\jacky\Proyecto Datos\Monopoly\src\Monopoly.Administracion\bin\Debug\net10.0\Monopoly.Administracion.deps.json
+C:\Users\jacky\Proyecto Datos\Monopoly\src\Monopoly.Administracion\bin\Debug\net10.0\Monopoly.Administracion.dll
+C:\Users\jacky\Proyecto Datos\Monopoly\src\Monopoly.Administracion\bin\Debug\net10.0\Monopoly.Administracion.pdb
+C:\Users\jacky\Proyecto Datos\Monopoly\src\Monopoly.Administracion\obj\Debug\net10.0\Monopoly.Administracion.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\jacky\Proyecto Datos\Monopoly\src\Monopoly.Administracion\obj\Debug\net10.0\Monopoly.Administracion.AssemblyInfoInputs.cache
+C:\Users\jacky\Proyecto Datos\Monopoly\src\Monopoly.Administracion\obj\Debug\net10.0\Monopoly.Administracion.AssemblyInfo.cs
+C:\Users\jacky\Proyecto Datos\Monopoly\src\Monopoly.Administracion\obj\Debug\net10.0\Monopoly.Administracion.csproj.CoreCompileInputs.cache
+C:\Users\jacky\Proyecto Datos\Monopoly\src\Monopoly.Administracion\obj\Debug\net10.0\Monopoly.Administracion.dll
+C:\Users\jacky\Proyecto Datos\Monopoly\src\Monopoly.Administracion\obj\Debug\net10.0\refint\Monopoly.Administracion.dll
+C:\Users\jacky\Proyecto Datos\Monopoly\src\Monopoly.Administracion\obj\Debug\net10.0\Monopoly.Administracion.pdb
+C:\Users\jacky\Proyecto Datos\Monopoly\src\Monopoly.Administracion\obj\Debug\net10.0\ref\Monopoly.Administracion.dll
