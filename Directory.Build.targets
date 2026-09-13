@@ -1,0 +1,9 @@
+<Project>
+  <!-- Mantiene los proyectos del cliente fuera de la compilacion del ejecutable original. -->
+  <!-- Este archivo se aplica al proyecto raiz sin editar Monopoly.csproj. -->
+  <ItemGroup Condition="'$(MSBuildProjectFullPath)' == '$(MSBuildThisFileDirectory)Monopoly.csproj'">
+    <Compile Remove="src/Monopoly.Protocolo/**;src/Monopoly.Nucleo/**;src/Monopoly.Cliente/**;src/Monopoly.ClienteConsola/**;src/Monopoly.ServidorPrueba/**" />
+    <EmbeddedResource Remove="src/Monopoly.Protocolo/**;src/Monopoly.Nucleo/**;src/Monopoly.Cliente/**;src/Monopoly.ClienteConsola/**;src/Monopoly.ServidorPrueba/**" />
+    <None Remove="src/Monopoly.Protocolo/**;src/Monopoly.Nucleo/**;src/Monopoly.Cliente/**;src/Monopoly.ClienteConsola/**;src/Monopoly.ServidorPrueba/**" />
+  </ItemGroup>
+</Project>
