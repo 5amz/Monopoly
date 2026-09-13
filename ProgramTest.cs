@@ -127,6 +127,59 @@ namespace Monopoly
             Console.WriteLine("Posicion despues de avanzar: " + jugador3.Posicion.Casilla.Nombre);
 
             Console.WriteLine("Dinero despues de pasar por Inicio: " + jugador3.Dinero);
+
+            //Compra de propiedad
+            Console.WriteLine();
+            Console.WriteLine("=== COMPRA DE PROPIEDAD ===");
+
+            JugadorTablero jugadorCompra = new JugadorTablero(4,"Luis",tablero.Head);
+
+            jugadorCompra.Dinero = 500000;
+
+            Propiedad propiedadCompra = (Propiedad)tablero.ObtenerCasilla(1);
+
+            Console.WriteLine("Dinero antes de comprar: " + jugadorCompra.Dinero);
+
+            Console.WriteLine("Propiedad: " + propiedadCompra.Nombre);
+
+            Console.WriteLine("Precio: " + propiedadCompra.Precio);
+
+            bool compraRealizada = tablero.ComprarPropiedad(jugadorCompra, propiedadCompra);
+
+            Console.WriteLine("Compra realizada: " + compraRealizada);
+
+            Console.WriteLine("Dinero despues de comprar: " + jugadorCompra.Dinero);
+
+            Console.WriteLine("Propietario: " + propiedadCompra.Propietario.Nombre);
+
+            Console.WriteLine("Disponible: " + propiedadCompra.Disponible);
+
+            //Alquiler
+            Console.WriteLine();
+            Console.WriteLine("=== PAGO DE ALQUILER ===");
+
+            JugadorTablero jugadorAlquiler = new JugadorTablero(5,"Carlos",tablero.Head);
+
+            jugadorAlquiler.Dinero = 400000;
+
+            Console.WriteLine("Dinero de Carlos antes: " + jugadorAlquiler.Dinero);
+
+            Console.WriteLine("Dinero de Luis antes: " + jugadorCompra.Dinero);
+
+            bool alquilerPagado = tablero.PagarAlquiler(jugadorAlquiler, propiedadCompra);
+
+            Console.WriteLine("Alquiler pagado: " + alquilerPagado);
+
+            Console.WriteLine("Dinero de Carlos despues: " + jugadorAlquiler.Dinero);
+
+            Console.WriteLine("Dinero de Luis despues: " + jugadorCompra.Dinero);
+
+            bool alquilerPropietario = tablero.PagarAlquiler(jugadorCompra,propiedadCompra);
+
+            Console.WriteLine(
+                "Propietario paga su propio alquiler: " +
+                alquilerPropietario
+            );
         }
     }
 }

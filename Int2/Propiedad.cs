@@ -5,12 +5,14 @@ namespace Monopoly
         public decimal Precio {get; set;}
         public decimal Alquiler {get; set;}
         public bool Disponible {get; set;}
+        public JugadorTablero Propietario {get; set;}
 
         public Propiedad(int id, string nombre, decimal precio, decimal alquiler) : base(id, nombre)
         {
             Precio = precio;
             Alquiler = alquiler;
             Disponible = true;
+            Propietario = null;
         }
 
         public override string ObtenerInformacion()

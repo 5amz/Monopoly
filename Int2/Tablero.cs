@@ -79,5 +79,44 @@ namespace Monopoly
             
             return posicion;
         }
+
+        public bool ComprarPropiedad(JugadorTablero jugador, Propiedad propiedad)
+        {
+            if (jugador == null || propiedad == null || !propiedad.Disponible)
+            {
+                return false;
+            }
+
+            if (jugador.Dinero >= propiedad.Precio)
+            {
+                jugador.Dinero -= propiedad.Precio;
+                propiedad.Disponible = false;
+                propiedad.Propietario = jugador;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public bool PagarAlquiler(JugadorTablero jugador, Propiedad propiedad)
+        {
+            if (jugador == null || propiedad == null || propiedad.Disponible || propiedad.Propietario == null || propiedad.Propietario == jugador)
+            {
+                return false;
+            }
+
+            if (jugador.Dinero >= propiedad.Alquiler)
+            {
+                jugador.Dinero -= propiedad.Alquiler;
+                propiedad.Propietario.Dinero += propiedad.Alquiler;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }
