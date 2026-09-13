@@ -1,0 +1,16 @@
+namespace Monopoly
+{
+    public class JugadorTablero
+    {
+        public int JugadorId {get; set;}
+        public string Nombre {get; set;}
+        public NodoCasilla Posicion {get; set;}
+
+        public JugadorTablero(int jugadorId, string nombre, NodoCasilla posicion)
+        {
+            JugadorId = jugadorId;
+            Nombre = nombre;
+            Posicion = posicion;
+        }
+    }
+}

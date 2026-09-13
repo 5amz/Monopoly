@@ -56,5 +56,20 @@ namespace Monopoly
         {
             return ObtenerNodo(posicion).Casilla;
         }
+
+        public NodoCasilla MoverJugador(NodoCasilla posicionActual, int cantidadCasillas)
+        {
+            if (posicionActual == null || cantidadCasillas < 0)
+            {
+                return null;
+            }
+
+            NodoCasilla posicion = posicionActual;
+            for (int i = 0; i < cantidadCasillas; i++)
+            {
+                posicion = posicion.Next;
+            }
+            return posicion;
+        }
     }
 }

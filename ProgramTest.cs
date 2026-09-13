@@ -99,6 +99,21 @@ namespace Monopoly
             colaTurnos.AvanzarTurno();
 
             Console.WriteLine("Despues de volver al inicio: " +colaTurnos.ObtenerJugadorActual().Nombre);
+
+            Console.WriteLine();
+            Console.WriteLine("=== MOVIMIENTO DEL JUGADOR ===");
+
+            NodoCasilla posicionInicial = tablero.ObtenerNodo(22);
+
+            JugadorTablero jugador = new JugadorTablero(1,"Ana",posicionInicial);
+
+            Console.WriteLine("Posicion inicial: " +jugador.Posicion.Casilla.Nombre);
+
+            jugador.Posicion = tablero.MoverJugador(jugador.Posicion,4);
+
+            Console.WriteLine("Posicion despues de avanzar 4 casillas: " +jugador.Posicion.Casilla.Nombre);
+
+            Console.WriteLine("ID de la casilla final: " +jugador.Posicion.Casilla.Id);
         }
     }
 }
