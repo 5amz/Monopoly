@@ -5,12 +5,14 @@ namespace Monopoly
         public int JugadorId {get; set;}
         public string Nombre {get; set;}
         public NodoCasilla Posicion {get; set;}
+        public decimal Dinero {get; set;}
 
         public JugadorTablero(int jugadorId, string nombre, NodoCasilla posicion)
         {
             JugadorId = jugadorId;
             Nombre = nombre;
             Posicion = posicion;
+            Dinero = 0;
         }
     }
 }

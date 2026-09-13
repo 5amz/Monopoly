@@ -5,12 +5,14 @@ namespace Monopoly
         public NodoCasilla Head {get; set;}
         public NodoCasilla Tail {get; set;}
         public int Cantidad {get; set;}
+        public decimal PremioInicio {get; set;}
 
         public Tablero()
         {
             Head = null;
             Tail = null;
             Cantidad = 0;
+            PremioInicio = 200000;
         }
 
         public void AgregarCasilla(Casilla casilla)
@@ -57,9 +59,9 @@ namespace Monopoly
             return ObtenerNodo(posicion).Casilla;
         }
 
-        public NodoCasilla MoverJugador(NodoCasilla posicionActual, int cantidadCasillas)
+        public NodoCasilla MoverJugador(NodoCasilla posicionActual, int cantidadCasillas, JugadorTablero jugador)
         {
-            if (posicionActual == null || cantidadCasillas < 0)
+            if (posicionActual == null || cantidadCasillas < 0 || jugador == null)
             {
                 return null;
             }
@@ -68,7 +70,13 @@ namespace Monopoly
             for (int i = 0; i < cantidadCasillas; i++)
             {
                 posicion = posicion.Next;
+
+                if (posicion == Head)
+                {
+                    jugador.Dinero += PremioInicio;
+                }
             }
+            
             return posicion;
         }
     }

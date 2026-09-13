@@ -109,11 +109,24 @@ namespace Monopoly
 
             Console.WriteLine("Posicion inicial: " +jugador.Posicion.Casilla.Nombre);
 
-            jugador.Posicion = tablero.MoverJugador(jugador.Posicion,4);
+            jugador.Posicion = tablero.MoverJugador(jugador.Posicion,4, jugador);
 
             Console.WriteLine("Posicion despues de avanzar 4 casillas: " +jugador.Posicion.Casilla.Nombre);
 
             Console.WriteLine("ID de la casilla final: " +jugador.Posicion.Casilla.Id);
+
+            Console.WriteLine();
+            Console.WriteLine("=== PREMIO POR PASAR POR INICIO ===");
+
+            JugadorTablero jugador3 = new JugadorTablero(3,"Pedro",tablero.ObtenerNodo(23));
+
+            Console.WriteLine("Dinero inicial: " +jugador3.Dinero);
+
+            jugador3.Posicion = tablero.MoverJugador(jugador3.Posicion,1,jugador3);
+
+            Console.WriteLine("Posicion despues de avanzar: " + jugador3.Posicion.Casilla.Nombre);
+
+            Console.WriteLine("Dinero despues de pasar por Inicio: " + jugador3.Dinero);
         }
     }
 }
