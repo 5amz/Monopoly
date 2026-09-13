@@ -45,6 +45,30 @@ namespace Monopoly
                 "Primero.Anterior: " +
                 tablero.Head.Prev.Casilla.Nombre
             );
+
+            MazoEventos mazo = new MazoEventos();
+
+            mazo.AgregarCarta(new CartaEvento(1, "Recibe dinero", "GanarDinero", 50000));
+
+            mazo.AgregarCarta(new CartaEvento(2, "Paga una multa", "PerderDinero", 30000));
+
+            mazo.AgregarCarta(new CartaEvento(3, "Avanza 3 casillas", "Avanzar", 3));
+
+            Console.WriteLine();
+            Console.WriteLine("=== MAZO DE EVENTOS ===");
+            Console.WriteLine("Cantidad de cartas: " + mazo.Cantidad);
+
+            CartaEvento carta1 = mazo.ObtenerSiguienteCarta();
+            Console.WriteLine("Carta obtenida: " + carta1.Descripcion);
+
+            CartaEvento carta2 = mazo.ObtenerSiguienteCarta();
+            Console.WriteLine("Carta obtenida: " + carta2.Descripcion);
+
+            CartaEvento carta3 = mazo.ObtenerSiguienteCarta();
+            Console.WriteLine("Carta obtenida: " + carta3.Descripcion);
+
+            CartaEvento carta4 = mazo.ObtenerSiguienteCarta();
+            Console.WriteLine("Carta obtenida nuevamente: " + carta4.Descripcion);
         }
     }
 }
