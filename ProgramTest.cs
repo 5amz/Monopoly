@@ -69,6 +69,36 @@ namespace Monopoly
 
             CartaEvento carta4 = mazo.ObtenerSiguienteCarta();
             Console.WriteLine("Carta obtenida nuevamente: " + carta4.Descripcion);
+
+            Console.WriteLine();
+            Console.WriteLine("=== COLA DE TURNOS ===");
+
+            ColaTurnos colaTurnos = new ColaTurnos();
+
+            colaTurnos.AgregarJugador(1, "Ana");
+            colaTurnos.AgregarJugador(2, "Carlos");
+            colaTurnos.AgregarJugador(3, "Maria");
+            colaTurnos.AgregarJugador(4, "Pedro");
+
+            Console.WriteLine("Cantidad de jugadores: " + colaTurnos.Cantidad);
+
+            Console.WriteLine("Jugador actual: " +colaTurnos.ObtenerJugadorActual().Nombre);
+
+            colaTurnos.AvanzarTurno();
+
+            Console.WriteLine("Despues de avanzar: " +colaTurnos.ObtenerJugadorActual().Nombre);
+
+            colaTurnos.AvanzarTurno();
+
+            Console.WriteLine("Despues de avanzar: " +colaTurnos.ObtenerJugadorActual().Nombre);
+
+            colaTurnos.AvanzarTurno();
+
+            Console.WriteLine("Despues de avanzar: " +colaTurnos.ObtenerJugadorActual().Nombre);
+
+            colaTurnos.AvanzarTurno();
+
+            Console.WriteLine("Despues de volver al inicio: " +colaTurnos.ObtenerJugadorActual().Nombre);
         }
     }
 }
