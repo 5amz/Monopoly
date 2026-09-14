@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace Monopoly.Administracion;
 
 // Registro lineal propio para no depender de List o LinkedList 

@@ -120,6 +120,73 @@ La compilación esperada es exitosa sin advertencias ni errores. Las carpetas `b
 ## Decisiones y límites
 
 - Se usa `decimal` para dinero.
+- TCP y el protocolo de mensajes se implementan en `ServidorTcp`, sin incluir la lógica de tablero ni turnos.
+
+## Servidor TCP y protocolo de mensajes
+
+El módulo administrativo ahora incluye `ServidorTcp`. TCP es una conexión de red confiable: un cliente abre una conexión con el servidor, envía una línea de texto y espera una respuesta. En este proyecto el cliente solicita; `ServidorJuego` valida con el estado oficial; y el cliente solo muestra el resultado.
+
+### Inicio del servidor
+
+```csharp
+var juego = new ServidorJuego();
+using var servidorTcp = new ServidorTcp(juego, 5000);
+await servidorTcp.IniciarAsync();
+```
+
+El servidor escucha en el puerto `5000` por defecto y acepta más de un cliente. Cada mensaje se procesa de uno en uno para que el saldo y el estado oficial no se modifiquen al mismo tiempo desde dos conexiones. `DetenerAsync()` finaliza la escucha de forma controlada.
+
+### Formato de solicitudes
+
+Cada solicitud ocupa una única línea y usa `|` como separador. El saldo se escribe con punto decimal, por ejemplo `1500.00`.
+
+```text
+CONECTAR|id|nombre|saldoInicial
+TIRAR_DADOS
+COMPRAR_PROPIEDAD
+NO_COMPRAR
+TERMINAR_TURNO
+CONSULTAR_ESTADO
+CONSULTAR_TRANSACCIONES
+```
+
+Primero debe enviarse `CONECTAR`. En una conexión ya identificada no se puede cambiar de jugador. `CONECTAR` registra al jugador mientras la partida está esperando jugadores o permite reconectar a un jugador existente si el ID y nombre coinciden.
+
+### Formato de respuestas
+
+```text
+OK|COMANDO|mensaje|datosOpcionales
+ERROR|CODIGO_ERROR|mensaje
+```
+
+Ejemplos:
+
+```text
+OK|CONECTAR|Jugador registrado.|J1
+OK|CONSULTAR_ESTADO|Estado consultado.|J1;Ana;1500.00;0;True;EsperandoJugadores
+ERROR|NO_IDENTIFICADO|Debe enviar CONECTAR antes de solicitar acciones.
+ERROR|FORMATO_INVALIDO|Use CONECTAR|id|nombre|saldoInicial.
+```
+
+### Validaciones realizadas por el servidor
+
+- Rechaza líneas vacías, comandos no reconocidos, parámetros sobrantes y mensajes de más de 512 caracteres.
+- Exige identificación antes de cualquier acción.
+- Confirma que el jugador exista y esté activo.
+- Solo permite acciones de juego cuando la partida está en curso.
+- Delega la validación del turno a `IValidadorTurnos`.
+- Delega tirar dados, compra, rechazo de compra y terminar turno a `IAccionesJuego`.
+- Delega la consulta de historial a `IConsultaTransacciones`.
+
+Los últimos tres contratos son interfaces públicas para que los módulos responsables se conecten sin que el servidor manipule sus nodos o estructuras internas. Mientras no estén integrados, el servidor responde `ERROR|MODULO_NO_INTEGRADO|...`; no inventa tablero, cola de turnos, propiedades ni transacciones.
+
+### Archivos agregados
+
+- `ComandoProtocolo.cs`: enumera los comandos admitidos.
+- `SolicitudProtocolo.cs` y `RespuestaProtocolo.cs`: representan mensajes antes y después de procesarlos.
+- `AnalizadorProtocolo.cs`: valida la sintaxis de cada línea.
+- `ServidorTcp.cs`: escucha conexiones, lee solicitudes y escribe respuestas.
+- `ContratosModulosJuego.cs`: define los puntos públicos de integración con turnos, tablero/dados y transacciones.
 - Se usa `Jugador?` y `decimal?` cuando una consulta puede no encontrar resultados.
 - No se inventa todavía una estructura de propiedades: corresponde al módulo del tablero.
 - Historial, exportación TXT y protocolo TCP completo deben integrarse en las siguientes partes, utilizando estos contratos sin acceder a implementaciones internas.

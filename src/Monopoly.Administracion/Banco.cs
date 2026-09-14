@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace Monopoly.Administracion;
 
 /// Autoridad para registrar jugadores y modificar dinero oficial
