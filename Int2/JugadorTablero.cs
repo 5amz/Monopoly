@@ -6,6 +6,7 @@ namespace Monopoly
         public string Nombre {get; set;}
         public NodoCasilla Posicion {get; set;}
         public decimal Dinero {get; set;}
+        public bool PierdeTurno {get; set;}
 
         public JugadorTablero(int jugadorId, string nombre, NodoCasilla posicion)
         {
@@ -13,6 +14,7 @@ namespace Monopoly
             Nombre = nombre;
             Posicion = posicion;
             Dinero = 0;
+            PierdeTurno = false;
         }
     }
 }

@@ -61,19 +61,29 @@ namespace Monopoly
 
         public NodoCasilla MoverJugador(NodoCasilla posicionActual, int cantidadCasillas, JugadorTablero jugador)
         {
-            if (posicionActual == null || cantidadCasillas < 0 || jugador == null)
+            if (posicionActual == null || jugador == null)
             {
                 return null;
             }
 
             NodoCasilla posicion = posicionActual;
-            for (int i = 0; i < cantidadCasillas; i++)
+            if (cantidadCasillas > 0)
             {
-                posicion = posicion.Next;
-
-                if (posicion == Head)
+                for (int i = 0; i < cantidadCasillas; i++)
                 {
-                    jugador.Dinero += PremioInicio;
+                    posicion = posicion.Next;
+
+                    if (posicion == Head)
+                    {
+                        jugador.Dinero += PremioInicio;
+                    }
+                }
+            }
+            else if (cantidadCasillas < 0)
+            {
+                for (int i = 0; i < -cantidadCasillas; i++)
+                {
+                    posicion = posicion.Prev;
                 }
             }
             
@@ -116,6 +126,44 @@ namespace Monopoly
             else
             {
                 return false;
+            }
+        }
+
+        public void EjecutarCartaEvento(CartaEvento carta, JugadorTablero jugador)
+        {
+            if (carta == null || jugador == null)
+            {
+                return;
+            }
+
+            switch (carta.Tipo)
+            {
+                case "GanarDinero":
+                    jugador.Dinero += carta.Valor;
+                    break;
+
+                case "PerderDinero":
+                    jugador.Dinero -= carta.Valor;
+                    break;
+
+                case "Avanzar":
+                    jugador.Posicion = MoverJugador(jugador.Posicion, carta.Valor, jugador);
+                    break;
+
+                case "Retroceder":
+                    jugador.Posicion = MoverJugador(jugador.Posicion, carta.Valor, jugador);
+                    break;
+
+                case "PerderTurno":
+                    jugador.PierdeTurno = true;
+                    break;
+
+                case "IrACasilla":
+                    jugador.Posicion = ObtenerNodo(carta.Valor);
+                    break;
+
+                default:
+                    return;
             }
         }
     }
