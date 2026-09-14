@@ -71,36 +71,6 @@ namespace Monopoly
             Console.WriteLine("Carta obtenida nuevamente: " + carta4.Descripcion);
 
             Console.WriteLine();
-            Console.WriteLine("=== COLA DE TURNOS ===");
-
-            ColaTurnos colaTurnos = new ColaTurnos();
-
-            colaTurnos.AgregarJugador(1, "Ana");
-            colaTurnos.AgregarJugador(2, "Carlos");
-            colaTurnos.AgregarJugador(3, "Maria");
-            colaTurnos.AgregarJugador(4, "Pedro");
-
-            Console.WriteLine("Cantidad de jugadores: " + colaTurnos.Cantidad);
-
-            Console.WriteLine("Jugador actual: " +colaTurnos.ObtenerJugadorActual().Nombre);
-
-            colaTurnos.AvanzarTurno();
-
-            Console.WriteLine("Despues de avanzar: " +colaTurnos.ObtenerJugadorActual().Nombre);
-
-            colaTurnos.AvanzarTurno();
-
-            Console.WriteLine("Despues de avanzar: " +colaTurnos.ObtenerJugadorActual().Nombre);
-
-            colaTurnos.AvanzarTurno();
-
-            Console.WriteLine("Despues de avanzar: " +colaTurnos.ObtenerJugadorActual().Nombre);
-
-            colaTurnos.AvanzarTurno();
-
-            Console.WriteLine("Despues de volver al inicio: " +colaTurnos.ObtenerJugadorActual().Nombre);
-
-            Console.WriteLine();
             Console.WriteLine("=== MOVIMIENTO DEL JUGADOR ===");
 
             NodoCasilla posicionInicial = tablero.ObtenerNodo(22);
@@ -255,6 +225,43 @@ namespace Monopoly
             Console.WriteLine("Posicion despues de la carta: " + jugadorEvento.Posicion.Casilla.Nombre);
 
             Console.WriteLine("Posicion numerica: " + 10);
+
+
+            Console.WriteLine();
+            Console.WriteLine("=== PERDIDA DE TURNO ===");
+
+            ColaTurnos colaPrueba = new ColaTurnos();
+
+            JugadorTablero ana = new JugadorTablero(1, "Ana", tablero.Head);
+
+            JugadorTablero carlos = new JugadorTablero(2, "Carlos", tablero.Head);
+
+            JugadorTablero pedro = new JugadorTablero(3, "Pedro", tablero.Head);
+
+            colaPrueba.AgregarJugador(ana);
+            colaPrueba.AgregarJugador(carlos);
+            colaPrueba.AgregarJugador(pedro);
+
+            Console.WriteLine("Jugador actual: " + colaPrueba.ObtenerJugadorActual().Nombre);
+
+            colaPrueba.AvanzarTurno(ana);
+
+            Console.WriteLine("Siguiente jugador: " +colaPrueba.ObtenerJugadorActual().Nombre);
+
+            carlos.PierdeTurno = true;
+
+            Console.WriteLine();
+            Console.WriteLine("Carlos pierde turno: " + carlos.PierdeTurno);
+
+            colaPrueba.AvanzarTurno(carlos);
+
+            Console.WriteLine("Jugador despues de Carlos: " + colaPrueba.ObtenerJugadorActual().Nombre);
+
+            Console.WriteLine("Carlos mantiene perdida pendiente: " + carlos.PierdeTurno);
+
+            colaPrueba.AvanzarTurno(pedro);
+
+            Console.WriteLine("Jugador despues de Pedro: " + colaPrueba.ObtenerJugadorActual().Nombre);
         }
     }
 }

@@ -13,9 +13,14 @@ namespace Monopoly
             Cantidad = 0;
         }
 
-        public void AgregarJugador(int jugadorId, string nombre)
+        public void AgregarJugador(JugadorTablero jugador)
         {
-            NodoJugador nuevoNodo = new NodoJugador(jugadorId, nombre);
+            if (jugador == null)
+            {
+                return;
+            }
+
+            NodoJugador nuevoNodo = new NodoJugador(jugador);
 
             if (Head == null)
             {
@@ -35,18 +40,52 @@ namespace Monopoly
 
         public NodoJugador ObtenerJugadorActual()
         {
+            if (Head == null)
+            {
+                return null;
+            }
+
             return Head;
         }
 
-        public NodoJugador AvanzarTurno()
+        public NodoJugador BuscarJugador(int jugadorId)
         {
             if (Head == null)
             {
                 return null;
             }
 
+            NodoJugador actual = Head;
+
+            for (int i = 0; i < Cantidad; i++)
+            {
+                if (actual.JugadorId == jugadorId)
+                {
+                    return actual;
+                }
+                actual = actual.Next;
+            }
+
+            return null;
+        }
+
+        public NodoJugador AvanzarTurno(JugadorTablero jugador)
+        {
+            if (Head == null || jugador == null || Head.JugadorId != jugador.JugadorId)
+            {
+                return null;
+            }
+
             Head = Head.Next;
             Tail = Tail.Next;
+
+            while (Head.Jugador.PierdeTurno)
+            {
+                Head.Jugador.PierdeTurno = false;
+
+                Head = Head.Next;
+                Tail = Tail.Next;
+            }
 
             return Head;
         }

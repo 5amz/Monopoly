@@ -5,12 +5,19 @@ namespace Monopoly
         public int JugadorId {get; set;}
         public string Nombre {get; set;}
         public NodoJugador Next {get; set;}
+        public JugadorTablero Jugador {get; set;}
 
-        public NodoJugador(int jugadorId, string nombre)
+        public NodoJugador(JugadorTablero jugador)
         {
-            JugadorId = jugadorId;
-            Nombre = nombre;
+            if (jugador == null)
+            {
+                return;
+            }
+            
+            JugadorId = jugador.JugadorId;
+            Nombre = jugador.Nombre;
             Next = null;
+            Jugador = jugador;
         }
     }
 }
