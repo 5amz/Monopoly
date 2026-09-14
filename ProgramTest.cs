@@ -262,6 +262,74 @@ namespace Monopoly
             colaPrueba.AvanzarTurno(pedro);
 
             Console.WriteLine("Jugador despues de Pedro: " + colaPrueba.ObtenerJugadorActual().Nombre);
+
+
+            Console.WriteLine();
+            Console.WriteLine("=== ELIMINACION DE JUGADOR ===");
+
+            JugadorTablero jugadorEliminado = new JugadorTablero(7, "Roberto", tablero.Head);
+
+            Propiedad propiedadRoberto = (Propiedad)tablero.ObtenerCasilla(3);
+
+            jugadorEliminado.Dinero = 300000;
+
+            bool comproRoberto = tablero.ComprarPropiedad(jugadorEliminado,propiedadRoberto);
+
+            Console.WriteLine("Compra realizada: " + comproRoberto);
+
+            Console.WriteLine("Activo antes: " + jugadorEliminado.Activo);
+
+            Console.WriteLine("Propietario antes: " + propiedadRoberto.Propietario.Nombre);
+
+            tablero.EliminarJugador(jugadorEliminado);
+
+            Console.WriteLine("Activo despues: " + jugadorEliminado.Activo);
+
+            Console.WriteLine("Propietario despues: " + (propiedadRoberto.Propietario == null));
+
+            Console.WriteLine("Propiedad disponible: " + propiedadRoberto.Disponible);
+
+            JugadorTablero jugadorA = new JugadorTablero(8, "Mario", tablero.Head);
+
+            JugadorTablero jugadorB = new JugadorTablero(9, "Laura", tablero.Head);
+
+            jugadorA.Dinero = 300000;
+            jugadorB.Dinero = 400000;
+
+            Propiedad propiedadMario = (Propiedad)tablero.ObtenerCasilla(5);
+
+            tablero.ComprarPropiedad(jugadorA, propiedadMario);
+
+
+            Console.WriteLine();
+            Console.WriteLine("=== PATRIMONIO ===");
+
+            Console.WriteLine("Patrimonio de Mario: " + tablero.CalcularPatrimonio(jugadorA));
+
+            Console.WriteLine("Patrimonio de Laura: " + tablero.CalcularPatrimonio(jugadorB));
+
+            JugadorTablero[] jugadores = new JugadorTablero[]
+            {
+                jugadorA,
+                jugadorB,
+                jugadorEliminado
+            };
+
+            JugadorTablero ganador = tablero.ObtenerGanador(jugadores);
+
+            Console.WriteLine();
+            Console.WriteLine("=== GANADOR ===");
+
+            Console.WriteLine("Ganador: " + ganador.Nombre);
+
+            Console.WriteLine("Patrimonio: " + tablero.CalcularPatrimonio(ganador));
+
+            bool termino = tablero.PartidaTerminada(jugadores, 10, 20);
+
+            Console.WriteLine("Partida terminada: " + termino);
+
+            termino = tablero.PartidaTerminada(jugadores, 20, 20);
+            Console.WriteLine("Partida terminada en turno 20: " + termino);
         }
     }
 }
