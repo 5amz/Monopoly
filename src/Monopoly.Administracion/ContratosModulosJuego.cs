@@ -30,9 +30,3 @@ public sealed class ResultadoAccionJuego
         Datos = datos;
     }
 }
-
-/// <summary>Contrato para consultar el historial cuando el módulo de transacciones esté integrado.</summary>
-public interface IConsultaTransacciones
-{
-    string ConsultarTransaccionesDe(string idJugador);
-}

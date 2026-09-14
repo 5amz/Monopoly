@@ -1,3 +1,40 @@
+# Monopoly distribuido - estado de implementación
+
+## Historial y transacciones oficiales
+
+El módulo administrativo ahora registra cada operación económica exitosa desde Banco. Una transacción incluye identificador, fecha y hora, número de turno, tipo, jugador origen, jugador destino, monto y descripción.
+
+Los tipos mínimos disponibles son:
+
+- `CompraPropiedad`
+- `PagoAlquiler`
+- `PagoAlBanco`
+- `PagoEntreJugadores`
+- `GananciaPorEvento`
+- `PerdidaPorEvento`
+- `PremioPorPasarInicio`
+
+`HistorialTransacciones` utiliza una lista doblemente enlazada propia. Permite recorrer desde la operación más antigua a la más reciente, en sentido inverso, buscar por jugador o tipo y generar un reporte de texto. Sus nodos no son públicos.
+
+Ejemplo de operación desde la lógica oficial:
+
+```csharp
+ResultadoOperacion resultado = servidor.ProcesarCobro(
+    "J1",
+    200m,
+    "Compra de Avenida Central",
+    TipoTransaccion.CompraPropiedad,
+    numeroTurno: 3);
+```
+
+El servidor consulta únicamente las transacciones del jugador conectado al recibir `CONSULTAR_TRANSACCIONES`. Para generar el entregable TXT desde una acción administrativa del servidor:
+
+```csharp
+servidor.ExportarTransacciones("transacciones-partida.txt");
+```
+
+Un pago insuficiente, un tipo de transacción incompatible o un jugador inexistente no modifican saldo ni agregan una transacción.
+
 Se implementaron:
 
 - `Jugador`: identidad, saldo y datos mínimos de integración.

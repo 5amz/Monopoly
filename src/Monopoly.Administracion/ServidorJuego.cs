@@ -8,7 +8,6 @@ public sealed class ServidorJuego
 {
     private readonly IValidadorTurnos _turnos;
     private readonly IAccionesJuego _accionesJuego;
-    private readonly IConsultaTransacciones _transacciones;
 
     public Banco Banco { get; }
     public EstadoPartida Estado { get; private set; }
@@ -20,14 +19,12 @@ public sealed class ServidorJuego
     public ServidorJuego(
         int maximoJugadores = 4,
         IValidadorTurnos turnos = null,
-        IAccionesJuego accionesJuego = null,
-        IConsultaTransacciones transacciones = null)
+        IAccionesJuego accionesJuego = null)
     {
         Banco = new Banco(maximoJugadores);
         Estado = EstadoPartida.EsperandoJugadores;
         _turnos = turnos;
         _accionesJuego = accionesJuego;
-        _transacciones = transacciones;
     }
 
     /// <summary>Registra un jugador únicamente antes de iniciar la partida.</summary>
@@ -40,21 +37,31 @@ public sealed class ServidorJuego
     }
 
     /// <summary>Procesa un cobro oficial; el cliente nunca modifica el saldo.</summary>
-    public ResultadoOperacion ProcesarCobro(string idJugador, decimal monto, string motivo)
+    public ResultadoOperacion ProcesarCobro(
+        string idJugador,
+        decimal monto,
+        string motivo,
+        TipoTransaccion tipo,
+        int numeroTurno)
     {
         if (Estado == EstadoPartida.Finalizada)
             return ResultadoOperacion.Error("La partida ya finalizó.");
 
-        return Banco.Cobrar(idJugador, monto, motivo);
+        return Banco.Cobrar(idJugador, monto, motivo, tipo, numeroTurno);
     }
 
     /// <summary>Procesa un abono oficial; el cliente nunca modifica el saldo.</summary>
-    public ResultadoOperacion ProcesarAbono(string idJugador, decimal monto, string motivo)
+    public ResultadoOperacion ProcesarAbono(
+        string idJugador,
+        decimal monto,
+        string motivo,
+        TipoTransaccion tipo,
+        int numeroTurno)
     {
         if (Estado == EstadoPartida.Finalizada)
             return ResultadoOperacion.Error("La partida ya finalizó.");
 
-        return Banco.Abonar(idJugador, monto, motivo);
+        return Banco.Abonar(idJugador, monto, motivo, tipo, numeroTurno);
     }
 
     /// <summary>
@@ -119,6 +126,12 @@ public sealed class ServidorJuego
         Estado = EstadoPartida.Finalizada;
     }
 
+    /// <summary>Exporta el historial oficial para el entregable TXT.</summary>
+    public void ExportarTransacciones(string rutaArchivo)
+    {
+        Banco.Historial.ExportarATxt(rutaArchivo);
+    }
+
     private RespuestaProtocolo ConsultarEstado(Jugador jugador)
     {
         string datos = string.Join(';', jugador.Id, jugador.Nombre, jugador.Saldo, jugador.PosicionActual, jugador.EstaActivo, Estado);
@@ -127,13 +140,10 @@ public sealed class ServidorJuego
 
     private RespuestaProtocolo ConsultarTransacciones(string idJugador)
     {
-        if (_transacciones is null)
-            return RespuestaProtocolo.Error("MODULO_NO_INTEGRADO", "El historial de transacciones aún no está conectado al servidor.");
-
         return RespuestaProtocolo.Exito(
             ComandoProtocolo.CONSULTAR_TRANSACCIONES,
             "Transacciones consultadas.",
-            _transacciones.ConsultarTransaccionesDe(idJugador));
+            Banco.Historial.GenerarReportePorJugador(idJugador));
     }
 
     private RespuestaProtocolo ProcesarAccionDeJuego(string idJugador, ComandoProtocolo comando)
