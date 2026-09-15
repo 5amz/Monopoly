@@ -61,19 +61,29 @@ namespace Monopoly
 
         public NodoCasilla MoverJugador(NodoCasilla posicionActual, int cantidadCasillas, JugadorTablero jugador)
         {
-            if (posicionActual == null || cantidadCasillas < 0 || jugador == null)
+            if (posicionActual == null || jugador == null)
             {
                 return null;
             }
 
             NodoCasilla posicion = posicionActual;
-            for (int i = 0; i < cantidadCasillas; i++)
+            if (cantidadCasillas > 0)
             {
-                posicion = posicion.Next;
-
-                if (posicion == Head)
+                for (int i = 0; i < cantidadCasillas; i++)
                 {
-                    jugador.Dinero += PremioInicio;
+                    posicion = posicion.Next;
+
+                    if (posicion == Head)
+                    {
+                        jugador.Dinero += PremioInicio;
+                    }
+                }
+            }
+            else if (cantidadCasillas < 0)
+            {
+                for (int i = 0; i < -cantidadCasillas; i++)
+                {
+                    posicion = posicion.Prev;
                 }
             }
             
@@ -117,6 +127,155 @@ namespace Monopoly
             {
                 return false;
             }
+        }
+
+        public void EjecutarCartaEvento(CartaEvento carta, JugadorTablero jugador)
+        {
+            if (carta == null || jugador == null)
+            {
+                return;
+            }
+
+            switch (carta.Tipo)
+            {
+                case "GanarDinero":
+                    jugador.Dinero += carta.Valor;
+                    break;
+
+                case "PerderDinero":
+                    jugador.Dinero -= carta.Valor;
+                    break;
+
+                case "Avanzar":
+                    jugador.Posicion = MoverJugador(jugador.Posicion, carta.Valor, jugador);
+                    break;
+
+                case "Retroceder":
+                    jugador.Posicion = MoverJugador(jugador.Posicion, carta.Valor, jugador);
+                    break;
+
+                case "PerderTurno":
+                    jugador.PierdeTurno = true;
+                    break;
+
+                case "IrACasilla":
+                    jugador.Posicion = ObtenerNodo(carta.Valor);
+                    break;
+
+                default:
+                    return;
+            }
+        }
+
+        public decimal CalcularPatrimonio(JugadorTablero jugador)
+        {
+            if (jugador == null)
+            {
+                return 0;
+            }
+
+            decimal patrimonio = jugador.Dinero;
+            NodoCasilla actual = Head;
+
+            for (int i = 0; i < Cantidad; i++)
+            {
+                if (actual.Casilla is Propiedad propiedad && propiedad.Propietario == jugador)
+                {
+                    patrimonio += propiedad.Precio;
+                }
+                actual = actual.Next;
+            }
+            
+            return patrimonio;
+        }
+
+        public void EliminarJugador(JugadorTablero jugador)
+        {
+            if (jugador == null)
+            {
+                return;
+            }
+
+            jugador.Activo = false;
+
+            NodoCasilla actual = Head;
+
+            for (int i = 0; i < Cantidad; i++)
+            {
+                if (actual.Casilla is Propiedad propiedad && propiedad.Propietario == jugador)
+                {
+                    propiedad.Disponible = true;
+                    propiedad.Propietario = null;
+                }
+
+                actual = actual.Next;
+            } 
+        }
+
+        public int ContarJugadoresActivos(JugadorTablero[] jugadores)
+        {
+            if (jugadores == null)
+            {
+                return 0;
+            }
+
+            int cantidadActivos = 0;
+
+            for (int i = 0; i < jugadores.Length; i++)
+            {
+                if (jugadores[i] != null && jugadores[i].Activo)
+                {
+                    cantidadActivos++;
+                }
+            }
+
+            return cantidadActivos;
+        }
+
+        public bool PartidaTerminada(JugadorTablero[] jugadores, int turnoActual, int maxTurnos)
+        {
+            if (jugadores == null || 0 >= maxTurnos)
+            {
+                return true;
+            }
+
+            int jugadoresActivos = ContarJugadoresActivos(jugadores);
+
+            if (jugadoresActivos <= 1 || turnoActual >= maxTurnos)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public JugadorTablero ObtenerGanador(JugadorTablero[] jugadores)
+        {
+            if (jugadores == null)
+            {
+                return null;
+            }
+
+            JugadorTablero ganador = null;
+            decimal maxPatrimonio = decimal.MinValue;
+
+            for (int i = 0; i < jugadores.Length; i++)
+            {
+                if (jugadores[i] == null || !jugadores[i].Activo)
+                {
+                    continue;
+                }
+
+                decimal patrimonio = CalcularPatrimonio(jugadores[i]);
+
+                if (ganador == null || patrimonio > maxPatrimonio)
+                {
+                    ganador = jugadores[i];
+                    maxPatrimonio = patrimonio;
+                }
+            }
+            
+            return ganador;
         }
     }
 }
