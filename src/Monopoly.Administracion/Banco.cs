@@ -1,5 +1,8 @@
 #nullable enable
 
+using System.Globalization;
+using System.Text;
+
 namespace Monopoly.Administracion;
 
 /// <summary>
@@ -67,6 +70,32 @@ public sealed class Banco
     public decimal? ConsultarSaldo(string id)
     {
         return ConsultarJugador(id)?.Saldo;
+    }
+
+    /// <summary>Genera un resumen de jugadores para sincronizar clientes.</summary>
+    public string GenerarResumenJugadores()
+    {
+        lock (_bloqueo)
+        {
+            var resumen = new StringBuilder();
+            _jugadores.Recorrer(jugador =>
+            {
+                if (resumen.Length > 0)
+                    resumen.Append('#');
+
+                resumen.Append(jugador.Id)
+                    .Append(';')
+                    .Append(jugador.Nombre)
+                    .Append(';')
+                    .Append(jugador.Saldo.ToString(CultureInfo.InvariantCulture))
+                    .Append(';')
+                    .Append(jugador.PosicionActual)
+                    .Append(';')
+                    .Append(jugador.EstaActivo);
+            });
+
+            return resumen.ToString();
+        }
     }
 
     /// <summary>

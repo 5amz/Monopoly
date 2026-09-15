@@ -33,6 +33,12 @@ public sealed class RespuestaProtocolo
             : $"{tipo}|{Limpiar(Codigo)}|{Limpiar(Mensaje)}|{Limpiar(Datos)}";
     }
 
+    /// <summary>Crea una notificación espontánea del servidor para clientes conectados.</summary>
+    public static string CrearEvento(string codigo, string datos)
+    {
+        return $"EVENTO|{Limpiar(codigo)}|{Limpiar(datos)}";
+    }
+
     private static string Limpiar(string valor)
         => (valor ?? string.Empty).Replace("|", "/").Replace("\r", " ").Replace("\n", " ");
 }

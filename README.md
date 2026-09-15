@@ -1,5 +1,22 @@
 # Monopoly distribuido - estado de implementación
 
+## Sincronización de clientes TCP
+
+`ServidorTcp` ahora conserva las conexiones identificadas usando `RegistroSesionesTcp`, una estructura lineal propia. Cuando un jugador se conecta o una acción de juego se completa correctamente, el servidor envía a todas las sesiones activas una notificación adicional:
+
+```text
+EVENTO|ESTADO_ACTUALIZADO|Estado=EnCurso#Jugadores=J1;Ana;1500.00;0;True#J2;Luis;1300.00;4;True
+```
+
+Este evento no es un comando que el cliente deba enviar. Es una actualización espontánea del servidor: el cliente la interpreta y refresca su pantalla. La respuesta normal a quien solicitó la acción se conserva, por ejemplo:
+
+```text
+OK|TIRAR_DADOS|Dados lanzados.|5;3
+EVENTO|ESTADO_ACTUALIZADO|...
+```
+
+Si el mismo jugador se conecta de nuevo, el servidor reemplaza y cierra su sesión TCP anterior. Esto evita que dos conexiones controlen simultáneamente a la misma identidad. Una desconexión o error de red elimina la sesión sin modificar el jugador, su saldo ni el estado de la partida.
+
 ## Historial y transacciones oficiales
 
 El módulo administrativo ahora registra cada operación económica exitosa desde Banco. Una transacción incluye identificador, fecha y hora, número de turno, tipo, jugador origen, jugador destino, monto y descripción.

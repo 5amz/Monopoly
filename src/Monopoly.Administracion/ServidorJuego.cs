@@ -132,6 +132,12 @@ public sealed class ServidorJuego
         Banco.Historial.ExportarATxt(rutaArchivo);
     }
 
+    /// <summary>Genera el estado resumido que el servidor envía a los clientes.</summary>
+    public string GenerarResumenEstado()
+    {
+        return $"Estado={Estado}#Jugadores={Banco.GenerarResumenJugadores()}";
+    }
+
     private RespuestaProtocolo ConsultarEstado(Jugador jugador)
     {
         string datos = string.Join(';', jugador.Id, jugador.Nombre, jugador.Saldo, jugador.PosicionActual, jugador.EstaActivo, Estado);

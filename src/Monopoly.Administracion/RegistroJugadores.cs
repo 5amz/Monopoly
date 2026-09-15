@@ -49,6 +49,20 @@ internal sealed class RegistroJugadores
         return null;
     }
 
+    // Recorre los jugadores sin entregar acceso a los nodos internos.
+    public void Recorrer(Action<Jugador> accion)
+    {
+        if (accion is null)
+            throw new ArgumentNullException(nameof(accion));
+
+        NodoJugador? actual = _primero;
+        while (actual is not null)
+        {
+            accion(actual.Jugador);
+            actual = actual.Siguiente;
+        }
+    }
+
     private sealed class NodoJugador
     {
         public Jugador Jugador { get; }

@@ -5,14 +5,15 @@ using System.Text;
 namespace Monopoly.Administracion;
 
 /// <summary>
-/// Servidor TCP de líneas de texto. Acepta varios clientes y delega toda
-/// decisión de juego a ServidorJuego; esta clase no contiene reglas de Monopoly.
+/// Servidor TCP de líneas de texto. Acepta clientes, conserva las sesiones
+/// activas y delega toda regla de Monopoly a ServidorJuego y sus módulos.
 /// </summary>
 public sealed class ServidorTcp : IDisposable
 {
     private readonly ServidorJuego _juego;
     private readonly int _puerto;
     private readonly object _bloqueoSolicitudes = new();
+    private readonly RegistroSesionesTcp _sesiones = new();
     private TcpListener _escuchador;
     private CancellationTokenSource _cancelacion;
 
@@ -41,7 +42,7 @@ public sealed class ServidorTcp : IDisposable
         return Task.CompletedTask;
     }
 
-    /// <summary>Detiene la escucha y solicita el cierre de los clientes conectados.</summary>
+    /// <summary>Detiene la escucha y cierra las sesiones TCP activas.</summary>
     public Task DetenerAsync()
     {
         if (!EstaEnEjecucion)
@@ -49,6 +50,7 @@ public sealed class ServidorTcp : IDisposable
 
         _cancelacion.Cancel();
         _escuchador.Stop();
+        _sesiones.CerrarTodo();
         _cancelacion.Dispose();
         _cancelacion = null;
         _escuchador = null;
@@ -83,6 +85,7 @@ public sealed class ServidorTcp : IDisposable
         using (var escritor = new StreamWriter(flujo, new UTF8Encoding(false), 1024, true) { AutoFlush = true })
         {
             string idJugador = null;
+            SesionClienteTcp sesion = null;
 
             try
             {
@@ -93,7 +96,21 @@ public sealed class ServidorTcp : IDisposable
                         break;
 
                     RespuestaProtocolo respuesta = ProcesarLinea(linea, ref idJugador);
-                    await escritor.WriteLineAsync(respuesta.ConvertirALinea());
+
+                    if (respuesta.FueExitosa && sesion is null && idJugador is not null)
+                    {
+                        sesion = new SesionClienteTcp(idJugador, cliente, escritor);
+                        SesionClienteTcp sesionAnterior = _sesiones.Registrar(sesion);
+                        sesionAnterior?.Cerrar();
+                    }
+
+                    if (sesion is null)
+                        await escritor.WriteLineAsync(respuesta.ConvertirALinea());
+                    else
+                        await sesion.IntentarEnviarAsync(respuesta.ConvertirALinea());
+
+                    if (DebeNotificarActualizacion(respuesta))
+                        await NotificarEstadoActualizadoAsync();
                 }
             }
             catch (OperationCanceledException)
@@ -107,6 +124,11 @@ public sealed class ServidorTcp : IDisposable
             catch (SocketException)
             {
                 // Error de red local: la sesión se cierra sin afectar al juego.
+            }
+            finally
+            {
+                if (sesion is not null)
+                    _sesiones.Eliminar(sesion);
             }
         }
     }
@@ -140,6 +162,24 @@ public sealed class ServidorTcp : IDisposable
 
             return _juego.ProcesarSolicitud(idJugador, solicitud);
         }
+    }
+
+    private static bool DebeNotificarActualizacion(RespuestaProtocolo respuesta)
+    {
+        if (!respuesta.FueExitosa)
+            return false;
+
+        return respuesta.Codigo is nameof(ComandoProtocolo.CONECTAR)
+            or nameof(ComandoProtocolo.TIRAR_DADOS)
+            or nameof(ComandoProtocolo.COMPRAR_PROPIEDAD)
+            or nameof(ComandoProtocolo.NO_COMPRAR)
+            or nameof(ComandoProtocolo.TERMINAR_TURNO);
+    }
+
+    private Task NotificarEstadoActualizadoAsync()
+    {
+        string evento = RespuestaProtocolo.CrearEvento("ESTADO_ACTUALIZADO", _juego.GenerarResumenEstado());
+        return _sesiones.NotificarATodosAsync(evento);
     }
 
     /// <summary>Libera los recursos de red si el servidor sigue activo.</summary>
