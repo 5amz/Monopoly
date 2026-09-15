@@ -1,5 +1,36 @@
 # Monopoly distribuido - estado de implementación
 
+## Coordinación de tablero, turnos y servidor
+
+`CoordinadorPartidaTablero` es el adaptador del módulo `Int2`. Implementa los contratos públicos `IRegistroJugadoresJuego`, `IValidadorTurnos` e `IAccionesJuego`, por lo que `ServidorJuego` puede usar tablero y cola de turnos sin manipular sus nodos.
+
+Al crear la partida, el organizador debe conectar los módulos antes de aceptar clientes:
+
+```csharp
+var servidor = new ServidorJuego();
+var tablero = new ConfiguradorTablero().CrearTablero();
+var colaTurnos = new ColaTurnos();
+var coordinador = new CoordinadorPartidaTablero(servidor, tablero, colaTurnos);
+
+servidor.ConfigurarModulos(coordinador, coordinador, coordinador);
+```
+
+Después de esto, cada `CONECTAR` registrado por el servidor crea una única representación `JugadorTablero` con el mismo ID. Los comandos `COMPRAR_PROPIEDAD`, `NO_COMPRAR` y `TERMINAR_TURNO` ya validan el turno mediante la cola circular y se procesan con el coordinador.
+
+La compra y el alquiler siguen esta secuencia:
+
+```text
+Coordinador valida casilla y turno
+        ↓
+ServidorJuego solicita operación a Banco
+        ↓
+Banco cambia el saldo y registra la transacción
+        ↓
+Coordinador actualiza propiedad o posición en tablero
+```
+
+`TIRAR_DADOS` permanece rechazado con un mensaje claro hasta que el módulo de dado electrónico se integre. El coordinador ya expone `MoverJugador(...)` para recibir posteriormente el resultado de los dados sin que el dado modifique dinero ni posición oficial por su cuenta.
+
 ## Integración tablero-Banco
 
 El módulo `Int2` ya no mantiene un saldo local. `JugadorTablero` conserva solo el identificador, posición, estado activo y efectos espaciales; el saldo oficial existe únicamente en `Jugador` y lo modifica `Banco` mediante `ServidorJuego`.

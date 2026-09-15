@@ -58,6 +58,24 @@ namespace Monopoly
             return ObtenerNodo(posicion)?.Casilla;
         }
 
+        /// <summary>Devuelve el índice de una posición sin exponer nodos al servidor.</summary>
+        public int ObtenerIndiceDeNodo(NodoCasilla nodo)
+        {
+            if (nodo is null)
+                return -1;
+
+            NodoCasilla actual = Head;
+            for (int i = 0; i < Cantidad; i++)
+            {
+                if (ReferenceEquals(actual, nodo))
+                    return i;
+
+                actual = actual.Next;
+            }
+
+            return -1;
+        }
+
         /// <summary>Mueve al jugador y reporta cuántas veces pasó por inicio.</summary>
         public ResultadoMovimientoTablero MoverJugador(NodoCasilla posicionActual, int cantidadCasillas, JugadorTablero jugador)
         {
@@ -101,6 +119,25 @@ namespace Monopoly
             propiedad.Disponible = false;
             propiedad.Propietario = jugador;
             return true;
+        }
+
+        /// <summary>Cuenta propiedades del jugador para informar el estado oficial.</summary>
+        public int ContarPropiedadesDe(JugadorTablero jugador)
+        {
+            if (jugador is null)
+                return 0;
+
+            int cantidad = 0;
+            NodoCasilla actual = Head;
+            for (int i = 0; i < Cantidad; i++)
+            {
+                if (actual.Casilla is Propiedad propiedad && ReferenceEquals(propiedad.Propietario, jugador))
+                    cantidad++;
+
+                actual = actual.Next;
+            }
+
+            return cantidad;
         }
 
         /// <summary>Indica si el jugador debe pagar alquiler y cuál es el propietario.</summary>

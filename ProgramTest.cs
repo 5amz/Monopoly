@@ -2,64 +2,35 @@ using Monopoly.Administracion;
 
 namespace Monopoly
 {
-    /// <summary>
-    /// Demostración local de la separación entre tablero y administración.
-    /// No es un cliente TCP ni una interfaz de juego.
-    /// </summary>
+    /// <summary>Demostración local de servidor, tablero, turnos y Banco integrados.</summary>
     internal class Program
     {
         private static void Main()
         {
             var servidor = new ServidorJuego();
+            Tablero tablero = new ConfiguradorTablero().CrearTablero();
+            var colaTurnos = new ColaTurnos();
+            var coordinador = new CoordinadorPartidaTablero(servidor, tablero, colaTurnos);
+            servidor.ConfigurarModulos(coordinador, coordinador, coordinador);
+
             servidor.RegistrarJugador("J1", "Ana", 500000m);
             servidor.RegistrarJugador("J2", "Luis", 500000m);
             servidor.MarcarPartidaIniciada();
 
-            Tablero tablero = new ConfiguradorTablero().CrearTablero();
-            var anaTablero = new JugadorTablero("J1", "Ana", tablero.Head);
-            var luisTablero = new JugadorTablero("J2", "Luis", tablero.Head);
-
-            Console.WriteLine("=== MOVIMIENTO SIN CAMBIAR SALDO LOCAL ===");
-            ResultadoMovimientoTablero movimiento = tablero.MoverJugador(anaTablero.Posicion, 2, anaTablero);
-            Console.WriteLine($"Casilla final: {movimiento.PosicionFinal.Casilla.Nombre}");
-            Console.WriteLine($"Pasos por inicio: {movimiento.VecesPasoPorInicio}");
-
-            Propiedad propiedad = (Propiedad)tablero.ObtenerCasilla(1);
-            Console.WriteLine("\n=== COMPRA AUTORIZADA POR BANCO ===");
-            if (tablero.PuedeComprarPropiedad(anaTablero, propiedad))
-            {
-                ResultadoOperacion compra = servidor.ProcesarCompraPropiedad(
-                    anaTablero.IdJugador,
-                    propiedad.Precio,
-                    propiedad.Nombre,
-                    numeroTurno: 1);
-
-                if (compra.FueExitosa)
-                    tablero.AsignarPropiedad(anaTablero, propiedad);
-
-                Console.WriteLine(compra.Mensaje);
-            }
-
-            Console.WriteLine($"Propietario en tablero: {propiedad.Propietario.Nombre}");
+            Console.WriteLine("=== COMPRA CON TURNO Y BANCO OFICIAL ===");
+            Console.WriteLine(coordinador.MoverJugador("J1", 1).Mensaje);
+            Console.WriteLine(coordinador.ComprarPropiedad("J1").Mensaje);
             Console.WriteLine($"Saldo oficial de Ana: {servidor.Banco.ConsultarSaldo("J1")}");
 
-            Console.WriteLine("\n=== ALQUILER AUTORIZADO POR BANCO ===");
-            if (tablero.PuedePagarAlquiler(luisTablero, propiedad))
-            {
-                ResultadoOperacion alquiler = servidor.ProcesarPagoAlquiler(
-                    luisTablero.IdJugador,
-                    propiedad.Propietario.IdJugador,
-                    propiedad.Alquiler,
-                    propiedad.Nombre,
-                    numeroTurno: 2);
-
-                Console.WriteLine(alquiler.Mensaje);
-            }
-
+            Console.WriteLine("\n=== ALQUILER CON TURNO Y BANCO OFICIAL ===");
+            Console.WriteLine(coordinador.TerminarTurno("J1").Mensaje);
+            Console.WriteLine(coordinador.MoverJugador("J2", 1).Mensaje);
+            Console.WriteLine(coordinador.PagarAlquilerActual("J2").Mensaje);
             Console.WriteLine($"Saldo oficial de Ana: {servidor.Banco.ConsultarSaldo("J1")}");
             Console.WriteLine($"Saldo oficial de Luis: {servidor.Banco.ConsultarSaldo("J2")}");
-            Console.WriteLine("\n=== TRANSACCIONES DE ANA ===");
-            Console.WriteLine(servidor.Banco.Historial.GenerarReportePorJugador("J1"));
+
+            Console.WriteLine("\n=== TRANSACCIONES ===");
+            Console.WriteLine(servidor.Banco.Historial.GenerarReporteCompleto());
         }
     }
 }

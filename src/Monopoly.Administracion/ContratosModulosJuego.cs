@@ -16,6 +16,12 @@ public interface IAccionesJuego
     ResultadoAccionJuego TerminarTurno(string idJugador);
 }
 
+/// <summary>Contrato para crear la representación espacial al registrar un jugador.</summary>
+public interface IRegistroJugadoresJuego
+{
+    ResultadoAccionJuego RegistrarJugadorEnJuego(string idJugador, string nombre);
+}
+
 /// <summary>Resultado que un módulo del juego devuelve al servidor.</summary>
 public sealed class ResultadoAccionJuego
 {

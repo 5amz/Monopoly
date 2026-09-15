@@ -6,8 +6,9 @@ namespace Monopoly.Administracion;
 /// </summary>
 public sealed class ServidorJuego
 {
-    private readonly IValidadorTurnos _turnos;
-    private readonly IAccionesJuego _accionesJuego;
+    private IValidadorTurnos _turnos;
+    private IAccionesJuego _accionesJuego;
+    private IRegistroJugadoresJuego _registroJugadoresJuego;
 
     public Banco Banco { get; }
     public EstadoPartida Estado { get; private set; }
@@ -19,12 +20,14 @@ public sealed class ServidorJuego
     public ServidorJuego(
         int maximoJugadores = 4,
         IValidadorTurnos turnos = null,
-        IAccionesJuego accionesJuego = null)
+        IAccionesJuego accionesJuego = null,
+        IRegistroJugadoresJuego registroJugadoresJuego = null)
     {
         Banco = new Banco(maximoJugadores);
         Estado = EstadoPartida.EsperandoJugadores;
         _turnos = turnos;
         _accionesJuego = accionesJuego;
+        _registroJugadoresJuego = registroJugadoresJuego;
     }
 
     /// <summary>Registra un jugador únicamente antes de iniciar la partida.</summary>
@@ -33,7 +36,53 @@ public sealed class ServidorJuego
         if (Estado != EstadoPartida.EsperandoJugadores)
             return ResultadoOperacion.Error("No se pueden registrar jugadores después de iniciar la partida.");
 
-        return Banco.RegistrarJugador(id, nombre, saldoInicial);
+        ResultadoOperacion resultado = Banco.RegistrarJugador(id, nombre, saldoInicial);
+        if (!resultado.FueExitosa || _registroJugadoresJuego is null)
+            return resultado;
+
+        ResultadoAccionJuego registroTablero = _registroJugadoresJuego.RegistrarJugadorEnJuego(id, nombre);
+        return registroTablero.FueExitosa
+            ? resultado
+            : ResultadoOperacion.Error($"Jugador registrado en Banco, pero no en tablero: {registroTablero.Mensaje}", resultado.SaldoActual);
+    }
+
+    /// <summary>Conecta los módulos externos después de crear el servidor.</summary>
+    public void ConfigurarModulos(
+        IValidadorTurnos turnos,
+        IAccionesJuego accionesJuego,
+        IRegistroJugadoresJuego registroJugadoresJuego)
+    {
+        _turnos = turnos;
+        _accionesJuego = accionesJuego;
+        _registroJugadoresJuego = registroJugadoresJuego;
+    }
+
+    /// <summary>Actualiza la posición oficial con el resultado recibido del tablero.</summary>
+    public ResultadoOperacion ActualizarPosicionDesdeTablero(string idJugador, int posicion)
+    {
+        if (posicion < 0)
+            return ResultadoOperacion.Error("La posición no puede ser negativa.");
+
+        Jugador jugador = Banco.ConsultarJugador(idJugador);
+        if (jugador is null)
+            return ResultadoOperacion.Error("El jugador no está registrado.");
+
+        jugador.ActualizarPosicionDesdeServidor(posicion);
+        return ResultadoOperacion.Exito("Posición oficial actualizada.", jugador.Saldo, jugador.Saldo);
+    }
+
+    /// <summary>Actualiza el contador oficial después de un cambio de propiedad.</summary>
+    public ResultadoOperacion ActualizarCantidadPropiedadesDesdeTablero(string idJugador, int cantidad)
+    {
+        if (cantidad < 0)
+            return ResultadoOperacion.Error("La cantidad de propiedades no puede ser negativa.");
+
+        Jugador jugador = Banco.ConsultarJugador(idJugador);
+        if (jugador is null)
+            return ResultadoOperacion.Error("El jugador no está registrado.");
+
+        jugador.ActualizarCantidadPropiedadesDesdeServidor(cantidad);
+        return ResultadoOperacion.Exito("Cantidad de propiedades actualizada.", jugador.Saldo, jugador.Saldo);
     }
 
     /// <summary>Procesa un cobro oficial; el cliente nunca modifica el saldo.</summary>
@@ -133,6 +182,15 @@ public sealed class ServidorJuego
         {
             if (!jugadorExistente.Nombre.Equals(solicitud.NombreJugador, StringComparison.OrdinalIgnoreCase))
                 return RespuestaProtocolo.Error("IDENTIFICACION_INVALIDA", "El nombre no coincide con el jugador registrado.");
+
+            if (_registroJugadoresJuego is not null)
+            {
+                ResultadoAccionJuego sincronizacion = _registroJugadoresJuego.RegistrarJugadorEnJuego(
+                    jugadorExistente.Id,
+                    jugadorExistente.Nombre);
+                if (!sincronizacion.FueExitosa)
+                    return RespuestaProtocolo.Error("SINCRONIZACION_INVALIDA", sincronizacion.Mensaje);
+            }
 
             return RespuestaProtocolo.Exito(ComandoProtocolo.CONECTAR, "Jugador identificado.", jugadorExistente.Id);
         }
