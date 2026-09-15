@@ -64,6 +64,64 @@ public sealed class ServidorJuego
         return Banco.Abonar(idJugador, monto, motivo, tipo, numeroTurno);
     }
 
+    /// <summary>Autoriza y registra la compra de una propiedad validada por el tablero.</summary>
+    public ResultadoOperacion ProcesarCompraPropiedad(
+        string idJugador,
+        decimal precio,
+        string nombrePropiedad,
+        int numeroTurno)
+    {
+        return ProcesarCobro(
+            idJugador,
+            precio,
+            $"Compra de propiedad: {nombrePropiedad}",
+            TipoTransaccion.CompraPropiedad,
+            numeroTurno);
+    }
+
+    /// <summary>Autoriza y registra el alquiler que el tablero determinó.</summary>
+    public ResultadoOperacion ProcesarPagoAlquiler(
+        string idJugadorOrigen,
+        string idJugadorDestino,
+        decimal alquiler,
+        string nombrePropiedad,
+        int numeroTurno)
+    {
+        if (Estado == EstadoPartida.Finalizada)
+            return ResultadoOperacion.Error("La partida ya finalizó.");
+
+        return Banco.Transferir(
+            idJugadorOrigen,
+            idJugadorDestino,
+            alquiler,
+            $"Pago de alquiler: {nombrePropiedad}",
+            TipoTransaccion.PagoAlquiler,
+            numeroTurno);
+    }
+
+    /// <summary>Autoriza y registra el dinero recibido por un evento.</summary>
+    public ResultadoOperacion ProcesarGananciaEvento(string idJugador, decimal monto, string descripcion, int numeroTurno)
+    {
+        return ProcesarAbono(idJugador, monto, descripcion, TipoTransaccion.GananciaPorEvento, numeroTurno);
+    }
+
+    /// <summary>Autoriza y registra el dinero pagado por un evento.</summary>
+    public ResultadoOperacion ProcesarPerdidaEvento(string idJugador, decimal monto, string descripcion, int numeroTurno)
+    {
+        return ProcesarCobro(idJugador, monto, descripcion, TipoTransaccion.PerdidaPorEvento, numeroTurno);
+    }
+
+    /// <summary>Autoriza y registra el premio al pasar por inicio.</summary>
+    public ResultadoOperacion ProcesarPremioInicio(string idJugador, decimal monto, int numeroTurno)
+    {
+        return ProcesarAbono(
+            idJugador,
+            monto,
+            "Premio por pasar por inicio.",
+            TipoTransaccion.PremioPorPasarInicio,
+            numeroTurno);
+    }
+
     /// <summary>
     /// Identifica una conexión. Si el jugador existe, permite reconexión usando
     /// el mismo ID y nombre; si no existe, intenta registrarlo antes de iniciar.

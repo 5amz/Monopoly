@@ -1,22 +1,33 @@
 namespace Monopoly
 {
+    /// <summary>
+    /// Representa únicamente el estado espacial del jugador en el tablero.
+    /// El saldo oficial pertenece a Banco y no se almacena aquí.
+    /// </summary>
     public class JugadorTablero
     {
-        public int JugadorId {get; set;}
-        public string Nombre {get; set;}
-        public NodoCasilla Posicion {get; set;}
-        public decimal Dinero {get; set;}
-        public bool PierdeTurno {get; set;}
-        public bool Activo {get; set;}
+        public string IdJugador { get; }
+        public string Nombre { get; }
+        public NodoCasilla Posicion { get; set; }
+        public bool PierdeTurno { get; set; }
+        public bool Activo { get; set; }
 
-        public JugadorTablero(int jugadorId, string nombre, NodoCasilla posicion)
+        public JugadorTablero(string idJugador, string nombre, NodoCasilla posicion)
         {
-            JugadorId = jugadorId;
-            Nombre = nombre;
+            if (string.IsNullOrWhiteSpace(idJugador))
+                throw new ArgumentException("El identificador es obligatorio.", nameof(idJugador));
+
+            IdJugador = idJugador.Trim();
+            Nombre = nombre ?? string.Empty;
             Posicion = posicion;
-            Dinero = 0;
             PierdeTurno = false;
             Activo = true;
+        }
+
+        // Mantiene compatibilidad con pruebas que usan identificadores numéricos.
+        public JugadorTablero(int jugadorId, string nombre, NodoCasilla posicion)
+            : this(jugadorId.ToString(), nombre, posicion)
+        {
         }
     }
 }

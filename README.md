@@ -1,5 +1,35 @@
 # Monopoly distribuido - estado de implementación
 
+## Integración tablero-Banco
+
+El módulo `Int2` ya no mantiene un saldo local. `JugadorTablero` conserva solo el identificador, posición, estado activo y efectos espaciales; el saldo oficial existe únicamente en `Jugador` y lo modifica `Banco` mediante `ServidorJuego`.
+
+El flujo obligatorio para una compra es:
+
+```text
+Tablero.PuedeComprarPropiedad
+        ↓
+ServidorJuego.ProcesarCompraPropiedad
+        ↓
+Banco valida fondos, cobra y registra transacción
+        ↓
+Tablero.AsignarPropiedad
+```
+
+Para un alquiler:
+
+```text
+Tablero.PuedePagarAlquiler
+        ↓
+ServidorJuego.ProcesarPagoAlquiler
+        ↓
+Banco transfiere y registra transacción
+```
+
+`Tablero.MoverJugador(...)` devuelve `ResultadoMovimientoTablero`, que indica cuántas veces se pasó por inicio. El coordinador de juego debe solicitar cada premio mediante `ServidorJuego.ProcesarPremioInicio(...)`. De forma similar, `EjecutarCartaEvento(...)` devuelve `ResultadoEventoTablero`; el coordinador solicita a `ServidorJuego` la ganancia o pérdida correspondiente.
+
+El tablero nunca debe llamar setters de saldo ni actualizar dinero por su cuenta. La demostración en `ProgramTest.cs` verifica compra, alquiler y transacciones con esta separación.
+
 ## Sincronización de clientes TCP
 
 `ServidorTcp` ahora conserva las conexiones identificadas usando `RegistroSesionesTcp`, una estructura lineal propia. Cuando un jugador se conecta o una acción de juego se completa correctamente, el servidor envía a todas las sesiones activas una notificación adicional:

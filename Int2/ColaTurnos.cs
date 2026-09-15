@@ -1,10 +1,11 @@
 namespace Monopoly
 {
+    /// <summary>Cola circular propia para controlar el orden de los turnos.</summary>
     public class ColaTurnos
     {
-        public NodoJugador Head {get;  private set;}
-        public NodoJugador Tail {get; private set;}
-        public int Cantidad {get; private set;}
+        public NodoJugador Head { get; private set; }
+        public NodoJugador Tail { get; private set; }
+        public int Cantidad { get; private set; }
 
         public ColaTurnos()
         {
@@ -16,12 +17,9 @@ namespace Monopoly
         public void AgregarJugador(JugadorTablero jugador)
         {
             if (jugador == null)
-            {
                 return;
-            }
 
-            NodoJugador nuevoNodo = new NodoJugador(jugador);
-
+            var nuevoNodo = new NodoJugador(jugador);
             if (Head == null)
             {
                 Head = nuevoNodo;
@@ -40,29 +38,20 @@ namespace Monopoly
 
         public NodoJugador ObtenerJugadorActual()
         {
-            if (Head == null)
-            {
-                return null;
-            }
-
             return Head;
         }
 
-        public NodoJugador BuscarJugador(int jugadorId)
+        public NodoJugador BuscarJugador(string idJugador)
         {
-            if (Head == null)
-            {
+            if (Head == null || string.IsNullOrWhiteSpace(idJugador))
                 return null;
-            }
 
             NodoJugador actual = Head;
-
             for (int i = 0; i < Cantidad; i++)
             {
-                if (actual.JugadorId == jugadorId)
-                {
+                if (actual.IdJugador.Equals(idJugador, StringComparison.OrdinalIgnoreCase))
                     return actual;
-                }
+
                 actual = actual.Next;
             }
 
@@ -71,10 +60,8 @@ namespace Monopoly
 
         public NodoJugador AvanzarTurno(JugadorTablero jugador)
         {
-            if (Head == null || jugador == null || Head.JugadorId != jugador.JugadorId)
-            {
+            if (Head == null || jugador == null || !Head.IdJugador.Equals(jugador.IdJugador, StringComparison.OrdinalIgnoreCase))
                 return null;
-            }
 
             Head = Head.Next;
             Tail = Tail.Next;
@@ -82,7 +69,6 @@ namespace Monopoly
             while (Head.Jugador.PierdeTurno)
             {
                 Head.Jugador.PierdeTurno = false;
-
                 Head = Head.Next;
                 Tail = Tail.Next;
             }
