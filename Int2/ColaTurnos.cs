@@ -75,5 +75,44 @@ namespace Monopoly
 
             return Head;
         }
+
+        /// <summary>Retira un jugador de la cola circular al quedar eliminado.</summary>
+        public bool EliminarJugador(string idJugador)
+        {
+            if (Head is null || string.IsNullOrWhiteSpace(idJugador))
+                return false;
+
+            NodoJugador anterior = Tail;
+            NodoJugador actual = Head;
+            for (int i = 0; i < Cantidad; i++)
+            {
+                if (!actual.IdJugador.Equals(idJugador, StringComparison.OrdinalIgnoreCase))
+                {
+                    anterior = actual;
+                    actual = actual.Next;
+                    continue;
+                }
+
+                if (Cantidad == 1)
+                {
+                    Head = null;
+                    Tail = null;
+                }
+                else
+                {
+                    anterior.Next = actual.Next;
+                    if (ReferenceEquals(actual, Head))
+                        Head = actual.Next;
+
+                    if (ReferenceEquals(actual, Tail))
+                        Tail = anterior;
+                }
+
+                Cantidad--;
+                return true;
+            }
+
+            return false;
+        }
     }
 }

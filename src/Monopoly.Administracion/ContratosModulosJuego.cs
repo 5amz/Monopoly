@@ -22,6 +22,12 @@ public interface IRegistroJugadoresJuego
     ResultadoAccionJuego RegistrarJugadorEnJuego(string idJugador, string nombre);
 }
 
+/// <summary>Contrato para retirar un jugador de las estructuras del juego.</summary>
+public interface IEliminacionJugadoresJuego
+{
+    ResultadoAccionJuego EliminarJugadorDelJuego(string idJugador);
+}
+
 /// <summary>Resultado que un módulo del juego devuelve al servidor.</summary>
 public sealed class ResultadoAccionJuego
 {

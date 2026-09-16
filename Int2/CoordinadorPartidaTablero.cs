@@ -6,7 +6,7 @@ namespace Monopoly
     /// Adaptador entre las estructuras del tablero y el servidor oficial.
     /// Valida la parte espacial y solicita a ServidorJuego toda operación de dinero.
     /// </summary>
-    public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego, IRegistroJugadoresJuego
+    public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego, IRegistroJugadoresJuego, IEliminacionJugadoresJuego
     {
         private readonly ServidorJuego _servidor;
         private readonly Tablero _tablero;
@@ -134,6 +134,20 @@ namespace Monopoly
             return alquiler.FueExitosa
                 ? new ResultadoAccionJuego(true, "Alquiler pagado.", propiedad.Nombre)
                 : new ResultadoAccionJuego(false, alquiler.Mensaje);
+        }
+
+        /// <summary>Libera propiedades y retira al jugador eliminado de la cola.</summary>
+        public ResultadoAccionJuego EliminarJugadorDelJuego(string idJugador)
+        {
+            JugadorTablero jugador = ObtenerJugadorTablero(idJugador);
+            if (jugador is null)
+                return new ResultadoAccionJuego(false, "No existe una representación del jugador en el tablero.");
+
+            _tablero.EliminarJugador(jugador);
+            bool eliminadoDeTurnos = _turnos.EliminarJugador(idJugador);
+            return eliminadoDeTurnos
+                ? new ResultadoAccionJuego(true, "Jugador retirado de tablero y turnos.")
+                : new ResultadoAccionJuego(false, "El jugador fue retirado del tablero, pero no estaba en la cola de turnos.");
         }
 
         /// <summary>Avanza la cola solo si el jugador actual termina su turno.</summary>

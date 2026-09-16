@@ -39,6 +39,25 @@ public sealed class Banco
         }
     }
 
+    /// <summary>Cuenta jugadores que siguen activos en el estado oficial.</summary>
+    public int CantidadJugadoresActivos
+    {
+        get
+        {
+            lock (_bloqueo)
+            {
+                int cantidad = 0;
+                _jugadores.Recorrer(jugador =>
+                {
+                    if (jugador.EstaActivo)
+                        cantidad++;
+                });
+
+                return cantidad;
+            }
+        }
+    }
+
     /// <summary>Valida y registra un jugador nuevo.</summary>
     public ResultadoOperacion RegistrarJugador(string id, string nombre, decimal saldoInicial)
     {
@@ -166,7 +185,7 @@ public sealed class Banco
                 return ResultadoOperacion.Error("El jugador no está registrado.");
 
             if (jugador.Saldo < monto)
-                return ResultadoOperacion.Error("El jugador no tiene saldo suficiente.", jugador.Saldo);
+                return ResultadoOperacion.Error("El jugador no tiene saldo suficiente.", jugador.Saldo, true);
 
             decimal saldoAnterior = jugador.Saldo;
             jugador.EstablecerSaldoDesdeBanco(saldoAnterior - monto);
@@ -212,7 +231,7 @@ public sealed class Banco
                 return ResultadoOperacion.Error("El jugador origen o destino no está registrado.");
 
             if (origen.Saldo < monto)
-                return ResultadoOperacion.Error("El jugador origen no tiene saldo suficiente.", origen.Saldo);
+                return ResultadoOperacion.Error("El jugador origen no tiene saldo suficiente.", origen.Saldo, true);
 
             decimal saldoAnterior = origen.Saldo;
             origen.EstablecerSaldoDesdeBanco(saldoAnterior - monto);

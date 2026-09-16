@@ -9,6 +9,7 @@ public sealed class ServidorJuego
     private IValidadorTurnos _turnos;
     private IAccionesJuego _accionesJuego;
     private IRegistroJugadoresJuego _registroJugadoresJuego;
+    private IEliminacionJugadoresJuego _eliminacionJugadoresJuego;
 
     public Banco Banco { get; }
     public EstadoPartida Estado { get; private set; }
@@ -21,13 +22,15 @@ public sealed class ServidorJuego
         int maximoJugadores = 4,
         IValidadorTurnos turnos = null,
         IAccionesJuego accionesJuego = null,
-        IRegistroJugadoresJuego registroJugadoresJuego = null)
+        IRegistroJugadoresJuego registroJugadoresJuego = null,
+        IEliminacionJugadoresJuego eliminacionJugadoresJuego = null)
     {
         Banco = new Banco(maximoJugadores);
         Estado = EstadoPartida.EsperandoJugadores;
         _turnos = turnos;
         _accionesJuego = accionesJuego;
         _registroJugadoresJuego = registroJugadoresJuego;
+        _eliminacionJugadoresJuego = eliminacionJugadoresJuego;
     }
 
     /// <summary>Registra un jugador únicamente antes de iniciar la partida.</summary>
@@ -50,11 +53,13 @@ public sealed class ServidorJuego
     public void ConfigurarModulos(
         IValidadorTurnos turnos,
         IAccionesJuego accionesJuego,
-        IRegistroJugadoresJuego registroJugadoresJuego)
+        IRegistroJugadoresJuego registroJugadoresJuego,
+        IEliminacionJugadoresJuego eliminacionJugadoresJuego)
     {
         _turnos = turnos;
         _accionesJuego = accionesJuego;
         _registroJugadoresJuego = registroJugadoresJuego;
+        _eliminacionJugadoresJuego = eliminacionJugadoresJuego;
     }
 
     /// <summary>Actualiza la posición oficial con el resultado recibido del tablero.</summary>
@@ -96,7 +101,8 @@ public sealed class ServidorJuego
         if (Estado == EstadoPartida.Finalizada)
             return ResultadoOperacion.Error("La partida ya finalizó.");
 
-        return Banco.Cobrar(idJugador, monto, motivo, tipo, numeroTurno);
+        ResultadoOperacion cobro = Banco.Cobrar(idJugador, monto, motivo, tipo, numeroTurno);
+        return AplicarEliminacionPorInsolvencia(idJugador, cobro);
     }
 
     /// <summary>Procesa un abono oficial; el cliente nunca modifica el saldo.</summary>
@@ -139,13 +145,15 @@ public sealed class ServidorJuego
         if (Estado == EstadoPartida.Finalizada)
             return ResultadoOperacion.Error("La partida ya finalizó.");
 
-        return Banco.Transferir(
+        ResultadoOperacion resultadoAlquiler = Banco.Transferir(
             idJugadorOrigen,
             idJugadorDestino,
             alquiler,
             $"Pago de alquiler: {nombrePropiedad}",
             TipoTransaccion.PagoAlquiler,
             numeroTurno);
+
+        return AplicarEliminacionPorInsolvencia(idJugadorOrigen, resultadoAlquiler);
     }
 
     /// <summary>Autoriza y registra el dinero recibido por un evento.</summary>
@@ -258,6 +266,29 @@ public sealed class ServidorJuego
     {
         string datos = string.Join(';', jugador.Id, jugador.Nombre, jugador.Saldo, jugador.PosicionActual, jugador.EstaActivo, Estado);
         return RespuestaProtocolo.Exito(ComandoProtocolo.CONSULTAR_ESTADO, "Estado consultado.", datos);
+    }
+
+    private ResultadoOperacion AplicarEliminacionPorInsolvencia(string idJugador, ResultadoOperacion resultado)
+    {
+        if (resultado.FueExitosa || !resultado.FueRechazadaPorFondosInsuficientes)
+            return resultado;
+
+        Jugador jugador = Banco.ConsultarJugador(idJugador);
+        if (jugador is null || !jugador.EstaActivo)
+            return resultado;
+
+        jugador.CambiarEstadoActivoDesdeServidor(false);
+        jugador.ActualizarCantidadPropiedadesDesdeServidor(0);
+
+        ResultadoAccionJuego eliminacion = _eliminacionJugadoresJuego?.EliminarJugadorDelJuego(idJugador);
+        string mensaje = $"{resultado.Mensaje} El jugador fue eliminado por insolvencia.";
+        if (eliminacion is not null && !eliminacion.FueExitosa)
+            mensaje += $" No se pudo retirar del tablero: {eliminacion.Mensaje}";
+
+        if (Banco.CantidadJugadoresActivos <= 1)
+            Estado = EstadoPartida.Finalizada;
+
+        return ResultadoOperacion.Error(mensaje, resultado.SaldoActual, true);
     }
 
     private RespuestaProtocolo ConsultarTransacciones(string idJugador)

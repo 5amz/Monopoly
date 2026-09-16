@@ -1,5 +1,23 @@
 # Monopoly distribuido - estado de implementación
 
+## Eliminación por insolvencia
+
+Cuando Banco rechaza un cobro o alquiler porque el saldo oficial no alcanza, `ResultadoOperacion` marca explícitamente `FueRechazadaPorFondosInsuficientes`. `ServidorJuego` usa esa información para aplicar la eliminación oficial:
+
+```text
+Banco rechaza el pago por fondos insuficientes
+        ↓
+ServidorJuego marca al jugador inactivo
+        ↓
+CoordinadorPartidaTablero libera sus propiedades
+        ↓
+ColaTurnos elimina al jugador de la cola circular
+        ↓
+Si queda un jugador activo, EstadoPartida pasa a Finalizada
+```
+
+La eliminación se aplica a cobros por compra, pagos al Banco, pérdidas por evento y alquileres. El pago rechazado no modifica ningún saldo ni crea una transacción económica; las transacciones ya realizadas se conservan en el historial.
+
 ## Coordinación de tablero, turnos y servidor
 
 `CoordinadorPartidaTablero` es el adaptador del módulo `Int2`. Implementa los contratos públicos `IRegistroJugadoresJuego`, `IValidadorTurnos` e `IAccionesJuego`, por lo que `ServidorJuego` puede usar tablero y cola de turnos sin manipular sus nodos.
