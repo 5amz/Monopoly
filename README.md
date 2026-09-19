@@ -1,5 +1,27 @@
 # Monopoly distribuido - estado de implementación
 
+## Integración de RFID y dados electrónicos
+
+Se agregó la programación del dispositivo electrónico del proyecto mediante `main.py`, utilizando `mfrc522.py` para el lector RFID.
+
+- Se integró la lectura de tarjetas **RFID MFRC522** mediante SPI.
+- El UID de cada tarjeta se obtiene y se convierte a formato hexadecimal.
+- Se agregó una protección de **2 segundos** para evitar lecturas repetidas de la misma tarjeta.
+- Se incorporó un **botón en el GPIO 0** para lanzar los dados.
+- Cada lanzamiento genera **dos dados aleatorios entre 1 y 6** y calcula su suma.
+- El resultado se muestra en **dos displays de siete segmentos**, permitiendo representar valores de 2 a 12.
+- El código ya deja preparado lo que se enviará al codigo del juego, el **UID** y el **resultado de los dados al servidor**.
+- El dispositivo electrónico únicamente genera y muestra estos datos; no modifica directamente el saldo ni el estado oficial de la partida. Las tarjetas "rechazadas" son parte del codigo C#.
+
+Se utilizarán estos archivos en la Raspberry Pi Pico 2 W:
+
+```text
+main.py
+mfrc522.py
+```
+
+Esta actualización corresponde únicamente a la implementación del dispositivo electrónico.
+
 ## Eliminación por insolvencia
 
 Cuando Banco rechaza un cobro o alquiler porque el saldo oficial no alcanza, `ResultadoOperacion` marca explícitamente `FueRechazadaPorFondosInsuficientes`. `ServidorJuego` usa esa información para aplicar la eliminación oficial:
