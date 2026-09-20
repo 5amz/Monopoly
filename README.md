@@ -2,6 +2,23 @@
 
 ## Integración de RFID y dados electrónicos
 
+Se agregó el módulo Monopoly.Hardware para la comunicación entre la Raspberry Pi Pico 2W y el sistema Monopoly.
+
+Archivos agregados:
+
+- EventoHardware.cs
+- TipoEventoHardware.cs
+- RegistroTarjetasRfid.cs
+- ResultadoLecturaRfid.cs
+- LectorHardwareSerial.cs
+
+El módulo interpreta mensajes seriales enviados por la Pico con formato:
+
+RFID|UID
+DADO|VALOR
+
+y los convierte en eventos utilizables por el cliente y el servidor.
+
 Se agregó la programación del dispositivo electrónico del proyecto mediante `main.py`, utilizando `mfrc522.py` para el lector RFID.
 
 - Se integró la lectura de tarjetas **RFID MFRC522** mediante SPI.
