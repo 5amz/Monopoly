@@ -1,11 +1,15 @@
-using System.Diagnostics.Contracts;
+#nullable enable
+
 using System.IO.Ports;
+using Monopoly.Administracion;
 
 namespace Monopoly.Hardware;
 
-public sealed class LectorHarwareSerial : IDisposable
+public sealed class LectorHardwareSerial : IDisposable, IProveedorDados
 {
     private readonly SerialPort _serial;
+    private readonly object _bloqueoDados = new();
+    private ResultadoDados? _resultadoPendiente;
 
     public event Action<EventoHardware>? EventoRecibido;
 
@@ -36,7 +40,7 @@ public sealed class LectorHarwareSerial : IDisposable
                 string linea =
                     _serial.ReadLine().Trim();
                 
-                ProcesarLinea(linea);
+                ProcesarLineaRecibida(linea);
             }
             catch
             {
@@ -44,21 +48,46 @@ public sealed class LectorHarwareSerial : IDisposable
         }
     }
 
-    private void ProcesarLinea(
-        string linea)
+    internal void ProcesarLineaRecibida(string linea)
     {
-        string[] partes =
-            linea.Split('|');
-        
-        if (partes.Length != 2)
+        if (string.IsNullOrWhiteSpace(linea))
             return;
-        
-        if (partes[0] == "RFID")
+
+        string[] partes = linea.Split('|');
+        if (partes.Length == 2 && partes[0].Equals("RFID", StringComparison.OrdinalIgnoreCase))
         {
             EventoRecibido?.Invoke(
                 new EventoHardware(
-                    TipoEventoHardware.Dado,
+                    TipoEventoHardware.RFID,
                     partes[1]));
+
+            return;
+        }
+
+        if (partes.Length == 2
+            && partes[0].Equals("DADO", StringComparison.OrdinalIgnoreCase)
+            && int.TryParse(partes[1], out int total)
+            && total is >= 2 and <= 12)
+        {
+            var resultado = new ResultadoDados(total);
+            lock (_bloqueoDados)
+                _resultadoPendiente = resultado;
+
+            EventoRecibido?.Invoke(
+                new EventoHardware(
+                    TipoEventoHardware.Dado,
+                    total.ToString()));
+        }
+    }
+
+    /// <summary>Entrega el último resultado físico y lo elimina para impedir reutilizarlo.</summary>
+    public bool IntentarConsumirResultado(out ResultadoDados resultado)
+    {
+        lock (_bloqueoDados)
+        {
+            resultado = _resultadoPendiente!;
+            _resultadoPendiente = null;
+            return resultado is not null;
         }
     }
 

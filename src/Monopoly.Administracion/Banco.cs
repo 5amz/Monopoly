@@ -6,6 +6,42 @@ using System.Text;
 namespace Monopoly.Administracion;
 
 /// <summary>
+/// Resultado de una operación administrativa sin exponer la modificación
+/// directa del jugador a otros módulos.
+/// </summary>
+public sealed class ResultadoOperacion
+{
+    public bool FueExitosa { get; }
+    public string Mensaje { get; }
+    public decimal SaldoAnterior { get; }
+    public decimal SaldoActual { get; }
+    public bool FueRechazadaPorFondosInsuficientes { get; }
+
+    private ResultadoOperacion(
+        bool fueExitosa,
+        string mensaje,
+        decimal saldoAnterior,
+        decimal saldoActual,
+        bool fueRechazadaPorFondosInsuficientes)
+    {
+        FueExitosa = fueExitosa;
+        Mensaje = mensaje;
+        SaldoAnterior = saldoAnterior;
+        SaldoActual = saldoActual;
+        FueRechazadaPorFondosInsuficientes = fueRechazadaPorFondosInsuficientes;
+    }
+
+    public static ResultadoOperacion Exito(string mensaje, decimal saldoAnterior, decimal saldoActual)
+        => new(true, mensaje, saldoAnterior, saldoActual, false);
+
+    public static ResultadoOperacion Error(
+        string mensaje,
+        decimal saldoActual = 0,
+        bool fueRechazadaPorFondosInsuficientes = false)
+        => new(false, mensaje, saldoActual, saldoActual, fueRechazadaPorFondosInsuficientes);
+}
+
+/// <summary>
 /// Autoridad para registrar jugadores, modificar dinero y guardar el historial
 /// oficial de cada operación económica.
 /// </summary>

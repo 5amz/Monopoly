@@ -1,7 +1,11 @@
 from machine import Pin
-from mfrc522 import MFRC522
 from time import sleep_ms, ticks_ms
 import random
+
+try:
+    from mfrc522 import MFRC522
+except ImportError:
+    MFRC522 = None
 
 
 D1 = {
@@ -58,13 +62,15 @@ def mostrar_numero(numero):
 boton = Pin(0, Pin.IN, Pin.PULL_UP)
 
 
-rdr = MFRC522(
-    sck=2,
-    mosi=3,
-    miso=4,
-    rst=5,
-    cs=1
-)
+rdr = None
+if MFRC522 is not None:
+    rdr = MFRC522(
+        sck=2,
+        mosi=3,
+        miso=4,
+        rst=5,
+        cs=1
+    )
 
 ultimo_uid = None
 ultimo_tiempo = 0
@@ -75,6 +81,9 @@ def uid_a_texto(uid):
 def leer_tarjeta():
     global ultimo_uid
     global ultimo_tiempo
+
+    if rdr is None:
+        return None
 
     stat, tag_type = rdr.request(rdr.REQIDL)
 
@@ -104,6 +113,8 @@ def tirar_dados():
 
 
 print("Sistema iniciado")
+if rdr is None:
+    print("ADVERTENCIA|CONTROLADOR_RFID_NO_DISPONIBLE")
 mostrar_numero(0)
 
 boton_anterior = 1
@@ -113,21 +124,15 @@ while True:
     uid = leer_tarjeta()
 
     if uid:
-        print("RFID:", uid)
-
-        # enviar UID al servidor
+        print("RFID|{}".format(uid))
 
     estado = boton.value()
 
     if boton_anterior == 1 and estado == 0:
 
         resultado = tirar_dados()
-
-        print("DADO:", resultado)
-
+        print("DADO|{}".format(resultado))
         mostrar_numero(resultado)
-
-        # enviar resultado al servidor
 
     boton_anterior = estado
 

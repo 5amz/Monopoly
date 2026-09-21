@@ -25,9 +25,9 @@ Se agregó la programación del dispositivo electrónico del proyecto mediante `
 - El UID de cada tarjeta se obtiene y se convierte a formato hexadecimal.
 - Se agregó una protección de **2 segundos** para evitar lecturas repetidas de la misma tarjeta.
 - Se incorporó un **botón en el GPIO 0** para lanzar los dados.
-- Cada lanzamiento genera **dos dados aleatorios entre 1 y 6** y calcula su suma.
-- El resultado se muestra en **dos displays de siete segmentos**, permitiendo representar valores de 2 a 12.
-- El código ya deja preparado lo que se enviará al codigo del juego, el **UID** y el **resultado de los dados al servidor**.
+- Cada lanzamiento genera **dos dados aleatorios entre 1 y 6** y envía la suma, entre 2 y 12.
+- El total se muestra usando los dos displays de siete segmentos.
+- `LectorHardwareSerial` valida el mensaje y conserva un único resultado pendiente para que el servidor lo consuma una sola vez.
 - El dispositivo electrónico únicamente genera y muestra estos datos; no modifica directamente el saldo ni el estado oficial de la partida. Las tarjetas "rechazadas" son parte del codigo C#.
 
 Se utilizarán estos archivos en la Raspberry Pi Pico 2 W:
@@ -67,9 +67,15 @@ Al crear la partida, el organizador debe conectar los módulos antes de aceptar 
 var servidor = new ServidorJuego();
 var tablero = new ConfiguradorTablero().CrearTablero();
 var colaTurnos = new ColaTurnos();
-var coordinador = new CoordinadorPartidaTablero(servidor, tablero, colaTurnos);
+var lectorHardware = new LectorHardwareSerial("COM3");
+var coordinador = new CoordinadorPartidaTablero(
+    servidor,
+    tablero,
+    colaTurnos,
+    proveedorDados: lectorHardware);
 
-servidor.ConfigurarModulos(coordinador, coordinador, coordinador);
+servidor.ConfigurarModulos(coordinador, coordinador, coordinador, coordinador);
+lectorHardware.Iniciar();
 ```
 
 Después de esto, cada `CONECTAR` registrado por el servidor crea una única representación `JugadorTablero` con el mismo ID. Los comandos `COMPRAR_PROPIEDAD`, `NO_COMPRAR` y `TERMINAR_TURNO` ya validan el turno mediante la cola circular y se procesan con el coordinador.
@@ -86,7 +92,7 @@ Banco cambia el saldo y registra la transacción
 Coordinador actualiza propiedad o posición en tablero
 ```
 
-`TIRAR_DADOS` permanece rechazado con un mensaje claro hasta que el módulo de dado electrónico se integre. El coordinador ya expone `MoverJugador(...)` para recibir posteriormente el resultado de los dados sin que el dado modifique dinero ni posición oficial por su cuenta.
+`TIRAR_DADOS` consume el último resultado recibido del dado electrónico. El coordinador valida el turno, impide un segundo lanzamiento, mueve al jugador, entrega el premio por pasar por inicio y procesa la casilla final. Un alquiler se paga automáticamente; una propiedad disponible habilita `COMPRAR_PROPIEDAD` o `NO_COMPRAR`; y una casilla de evento toma una carta cuando se configuró un `MazoEventos`.
 
 ## Integración tablero-Banco
 
@@ -120,7 +126,7 @@ El tablero nunca debe llamar setters de saldo ni actualizar dinero por su cuenta
 
 ## Sincronización de clientes TCP
 
-`ServidorTcp` ahora conserva las conexiones identificadas usando `RegistroSesionesTcp`, una estructura lineal propia. Cuando un jugador se conecta o una acción de juego se completa correctamente, el servidor envía a todas las sesiones activas una notificación adicional:
+`ServidorTcp` conserva las conexiones identificadas usando `RegistroSesionesTcp`, una estructura lineal propia definida dentro de `ServidorTcp.cs`. Cuando un jugador se conecta o una acción de juego se completa correctamente, el servidor envía a todas las sesiones activas una notificación adicional:
 
 ```text
 EVENTO|ESTADO_ACTUALIZADO|Estado=EnCurso#Jugadores=J1;Ana;1500.00;0;True#J2;Luis;1300.00;4;True
@@ -129,7 +135,7 @@ EVENTO|ESTADO_ACTUALIZADO|Estado=EnCurso#Jugadores=J1;Ana;1500.00;0;True#J2;Luis
 Este evento no es un comando que el cliente deba enviar. Es una actualización espontánea del servidor: el cliente la interpreta y refresca su pantalla. La respuesta normal a quien solicitó la acción se conserva, por ejemplo:
 
 ```text
-OK|TIRAR_DADOS|Dados lanzados.|5;3
+OK|TIRAR_DADOS|Dados procesados.|Total=8;Posicion=8;Casilla=Descanso
 EVENTO|ESTADO_ACTUALIZADO|...
 ```
 
@@ -201,14 +207,15 @@ El cliente recibe la respuesta y actualiza su presentación, pero no cambia el o
 src/Monopoly.Administracion/
 ├── Jugador.cs
 ├── Banco.cs
-├── RegistroJugadores.cs
-├── ResultadoOperacion.cs
 ├── ServidorJuego.cs
-├── EstadoPartida.cs
 └── Monopoly.Administracion.csproj
 ```
 
-`RegistroJugadores` es `internal`: solo Banco conoce sus nodos y su recorrido. Ningún otro módulo debe depender de esa implementación. La restricción de estructuras lineales se mantiene porque no se usan `List`, `LinkedList`, `Queue` ni equivalentes.
+Los tipos auxiliares pequeños se mantienen junto a la clase que los utiliza directamente: `TipoTransaccion` y `Transaccion` están en `HistorialTransacciones.cs`, mientras que `EstadoPartida` está en `ServidorJuego.cs`.
+
+`ResultadoOperacion` está definido en `Banco.cs`, junto a las operaciones administrativas y monetarias que producen este resultado.
+
+`RegistroJugadores` está definido dentro de `Jugador.cs` y es `internal`: solo Banco conoce sus nodos y su recorrido. Ningún otro módulo debe depender de esa implementación. La restricción de estructuras lineales se mantiene porque no se usan `List`, `LinkedList`, `Queue` ni equivalentes.
 
 ## Contratos públicos disponibles
 
@@ -229,7 +236,8 @@ El constructor valida ID, nombre y saldo inicial no negativo.
 
 Métodos públicos:
 
-- `RegistrarJugador(id, nombre, saldoInicial)`: registra hasta cuatro jugadores por defecto y rechaza IDs repetidos.
+- `Banco.RegistrarJugador(id, nombre, saldoInicial)`: uso interno del servidor para crear el saldo oficial.
+- `ServidorJuego.RegistrarJugador(id, nombre)`: registra hasta cuatro jugadores y aplica el saldo configurado por el servidor.
 - `ConsultarJugador(id)`: devuelve `Jugador?`; puede devolver `null`.
 - `ConsultarSaldo(id)`: devuelve `decimal?`; puede devolver `null`.
 - `Abonar(idJugador, monto, motivo)`: suma dinero después de validar monto y jugador.
@@ -310,10 +318,10 @@ El servidor escucha en el puerto `5000` por defecto y acepta más de un cliente.
 
 ### Formato de solicitudes
 
-Cada solicitud ocupa una única línea y usa `|` como separador. El saldo se escribe con punto decimal, por ejemplo `1500.00`.
+Cada solicitud ocupa una única línea y usa `|` como separador. El cliente no envía ni decide el saldo inicial.
 
 ```text
-CONECTAR|id|nombre|saldoInicial
+CONECTAR|id|nombre
 TIRAR_DADOS
 COMPRAR_PROPIEDAD
 NO_COMPRAR
@@ -323,6 +331,12 @@ CONSULTAR_TRANSACCIONES
 ```
 
 Primero debe enviarse `CONECTAR`. En una conexión ya identificada no se puede cambiar de jugador. `CONECTAR` registra al jugador mientras la partida está esperando jugadores o permite reconectar a un jugador existente si el ID y nombre coinciden.
+
+El saldo inicial pertenece a la configuración de `ServidorJuego`. Su valor predeterminado es `500000`, acorde con los precios actuales del tablero, y puede cambiarse al crear el servidor:
+
+```csharp
+var juego = new ServidorJuego(saldoInicialJugadores: 500000m);
+```
 
 ### Formato de respuestas
 
@@ -337,7 +351,7 @@ Ejemplos:
 OK|CONECTAR|Jugador registrado.|J1
 OK|CONSULTAR_ESTADO|Estado consultado.|J1;Ana;1500.00;0;True;EsperandoJugadores
 ERROR|NO_IDENTIFICADO|Debe enviar CONECTAR antes de solicitar acciones.
-ERROR|FORMATO_INVALIDO|Use CONECTAR|id|nombre|saldoInicial.
+ERROR|FORMATO_INVALIDO|Use CONECTAR|id|nombre.
 ```
 
 ### Validaciones realizadas por el servidor
@@ -354,9 +368,7 @@ Los últimos tres contratos son interfaces públicas para que los módulos respo
 
 ### Archivos agregados
 
-- `ComandoProtocolo.cs`: enumera los comandos admitidos.
-- `SolicitudProtocolo.cs` y `RespuestaProtocolo.cs`: representan mensajes antes y después de procesarlos.
-- `AnalizadorProtocolo.cs`: valida la sintaxis de cada línea.
+- `Protocolo.cs`: contiene los comandos, solicitudes, respuestas y el analizador de sintaxis del protocolo.
 - `ServidorTcp.cs`: escucha conexiones, lee solicitudes y escribe respuestas.
 - `ContratosModulosJuego.cs`: define los puntos públicos de integración con turnos, tablero/dados y transacciones.
 - Se usa `Jugador?` y `decimal?` cuando una consulta puede no encontrar resultados.

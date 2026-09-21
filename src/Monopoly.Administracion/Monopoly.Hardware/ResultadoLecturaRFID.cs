@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace Monopoly.Hardware;
 
 public sealed class ResultadoLecturaRFID

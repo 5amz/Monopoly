@@ -7,6 +7,29 @@ public interface IValidadorTurnos
     bool EsTurnoActual(string idJugador);
 }
 
+/// <summary>
+/// Contrato mínimo para recibir el total generado por el dado electrónico.
+/// El coordinador consume cada resultado una sola vez.
+/// </summary>
+public interface IProveedorDados
+{
+    bool IntentarConsumirResultado(out ResultadoDados resultado);
+}
+
+/// <summary>Resultado total validado de los dados físicos.</summary>
+public sealed class ResultadoDados
+{
+    public int Total { get; }
+
+    public ResultadoDados(int total)
+    {
+        if (total is < 2 or > 12)
+            throw new ArgumentOutOfRangeException(nameof(total));
+
+        Total = total;
+    }
+}
+
 /// <summary>Contrato para delegar acciones al módulo de tablero, turnos y dados.</summary>
 public interface IAccionesJuego
 {

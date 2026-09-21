@@ -12,6 +12,10 @@ namespace Monopoly
         private readonly Tablero _tablero;
         private readonly ColaTurnos _turnos;
         private readonly JugadorTablero[] _jugadores;
+        private readonly IProveedorDados _proveedorDados;
+        private readonly MazoEventos _mazoEventos;
+        private bool _dadosUsadosEnTurno;
+        private string _idCompraPendiente;
 
         public int NumeroTurnoActual { get; private set; } = 1;
 
@@ -19,11 +23,15 @@ namespace Monopoly
             ServidorJuego servidor,
             Tablero tablero,
             ColaTurnos turnos,
-            int maximoJugadores = 4)
+            int maximoJugadores = 4,
+            IProveedorDados proveedorDados = null,
+            MazoEventos mazoEventos = null)
         {
             _servidor = servidor ?? throw new ArgumentNullException(nameof(servidor));
             _tablero = tablero ?? throw new ArgumentNullException(nameof(tablero));
             _turnos = turnos ?? throw new ArgumentNullException(nameof(turnos));
+            _proveedorDados = proveedorDados;
+            _mazoEventos = mazoEventos;
 
             if (maximoJugadores <= 0)
                 throw new ArgumentOutOfRangeException(nameof(maximoJugadores));
@@ -63,15 +71,48 @@ namespace Monopoly
             return actual is not null && actual.IdJugador.Equals(idJugador, StringComparison.OrdinalIgnoreCase);
         }
 
-        /// <summary>Reserva el comando hasta que el módulo de dado se conecte.</summary>
+        /// <summary>
+        /// Consume el resultado del dado electrónico, mueve al jugador y resuelve
+        /// automáticamente la casilla en la que termina.
+        /// </summary>
         public ResultadoAccionJuego TirarDados(string idJugador)
         {
-            return new ResultadoAccionJuego(false, "El módulo de dados aún no está integrado.");
+            JugadorTablero jugador = ObtenerJugadorTablero(idJugador);
+            if (jugador is null || !EsTurnoActual(idJugador))
+                return new ResultadoAccionJuego(false, "El jugador no puede tirar dados fuera de su turno.");
+
+            if (_dadosUsadosEnTurno)
+                return new ResultadoAccionJuego(false, "Los dados ya fueron utilizados durante este turno.");
+
+            if (_proveedorDados is null)
+                return new ResultadoAccionJuego(false, "No hay un proveedor de dados conectado.");
+
+            if (!_proveedorDados.IntentarConsumirResultado(out ResultadoDados dados))
+                return new ResultadoAccionJuego(false, "No hay un resultado pendiente. Presione el botón del dado electrónico.");
+
+            _dadosUsadosEnTurno = true;
+
+            ResultadoAccionJuego movimiento = MoverJugador(idJugador, dados.Total);
+            if (!movimiento.FueExitosa)
+                return movimiento;
+
+            ResultadoAccionJuego casilla = ProcesarCasillaActual(jugador);
+            string datos = $"Total={dados.Total};{movimiento.Datos};Casilla={jugador.Posicion.Casilla.Nombre}";
+            if (!string.IsNullOrWhiteSpace(casilla.Datos))
+                datos += $";{casilla.Datos}";
+
+            return new ResultadoAccionJuego(
+                casilla.FueExitosa,
+                $"Dados procesados. {casilla.Mensaje}",
+                datos);
         }
 
         /// <summary>Autoriza el cobro con Banco y luego asigna la propiedad en el tablero.</summary>
         public ResultadoAccionJuego ComprarPropiedad(string idJugador)
         {
+            if (!_dadosUsadosEnTurno || !EsCompraPendienteDe(idJugador))
+                return new ResultadoAccionJuego(false, "No hay una compra pendiente para este jugador.");
+
             JugadorTablero jugador = ObtenerJugadorTablero(idJugador);
             Propiedad propiedad = jugador?.Posicion?.Casilla as Propiedad;
 
@@ -97,18 +138,24 @@ namespace Monopoly
                 jugador.IdJugador,
                 _tablero.ContarPropiedadesDe(jugador));
 
+            _idCompraPendiente = null;
+
             return new ResultadoAccionJuego(true, "Propiedad comprada.", propiedad.Nombre);
         }
 
         /// <summary>Registra que el jugador rechaza la compra de la propiedad actual.</summary>
         public ResultadoAccionJuego NoComprarPropiedad(string idJugador)
         {
+            if (!_dadosUsadosEnTurno || !EsCompraPendienteDe(idJugador))
+                return new ResultadoAccionJuego(false, "No hay una compra pendiente para este jugador.");
+
             JugadorTablero jugador = ObtenerJugadorTablero(idJugador);
             Propiedad propiedad = jugador?.Posicion?.Casilla as Propiedad;
 
             if (jugador is null || propiedad is null || !propiedad.Disponible)
                 return new ResultadoAccionJuego(false, "No hay una propiedad disponible para rechazar.");
 
+            _idCompraPendiente = null;
             return new ResultadoAccionJuego(true, "El jugador decidió no comprar la propiedad.", propiedad.Nombre);
         }
 
@@ -145,6 +192,10 @@ namespace Monopoly
 
             _tablero.EliminarJugador(jugador);
             bool eliminadoDeTurnos = _turnos.EliminarJugador(idJugador);
+            if (EsCompraPendienteDe(idJugador))
+                _idCompraPendiente = null;
+
+            _dadosUsadosEnTurno = false;
             return eliminadoDeTurnos
                 ? new ResultadoAccionJuego(true, "Jugador retirado de tablero y turnos.")
                 : new ResultadoAccionJuego(false, "El jugador fue retirado del tablero, pero no estaba en la cola de turnos.");
@@ -157,11 +208,18 @@ namespace Monopoly
             if (jugador is null || !EsTurnoActual(idJugador))
                 return new ResultadoAccionJuego(false, "Solo el jugador del turno actual puede terminarlo.");
 
+            if (!_dadosUsadosEnTurno)
+                return new ResultadoAccionJuego(false, "El jugador debe tirar los dados antes de terminar el turno.");
+
+            if (EsCompraPendienteDe(idJugador))
+                return new ResultadoAccionJuego(false, "Debe comprar la propiedad o rechazar la compra antes de terminar el turno.");
+
             NodoJugador siguiente = _turnos.AvanzarTurno(jugador);
             if (siguiente is null)
                 return new ResultadoAccionJuego(false, "No fue posible avanzar al siguiente turno.");
 
             NumeroTurnoActual++;
+            _dadosUsadosEnTurno = false;
             return new ResultadoAccionJuego(true, "Turno terminado.", siguiente.IdJugador);
         }
 
@@ -235,6 +293,84 @@ namespace Monopoly
 
             _servidor.ActualizarPosicionDesdeTablero(jugador.IdJugador, _tablero.ObtenerIndiceDeNodo(jugador.Posicion));
             return new ResultadoAccionJuego(true, "Evento aplicado.", evento.TipoEvento);
+        }
+
+        /// <summary>Resuelve el efecto inmediato de la casilla alcanzada por los dados.</summary>
+        private ResultadoAccionJuego ProcesarCasillaActual(JugadorTablero jugador)
+        {
+            Casilla casilla = jugador.Posicion?.Casilla;
+            if (casilla is null)
+                return new ResultadoAccionJuego(false, "La posición final no contiene una casilla válida.");
+
+            if (casilla is Propiedad propiedad)
+            {
+                if (propiedad.Disponible)
+                {
+                    _idCompraPendiente = jugador.IdJugador;
+                    return new ResultadoAccionJuego(
+                        true,
+                        $"La propiedad {propiedad.Nombre} está disponible.",
+                        $"AccionPendiente=COMPRAR_O_RECHAZAR;Precio={propiedad.Precio}");
+                }
+
+                if (propiedad.Propietario?.IdJugador.Equals(jugador.IdJugador, StringComparison.OrdinalIgnoreCase) == true)
+                    return new ResultadoAccionJuego(true, "El jugador cayó en una propiedad propia.");
+
+                ResultadoAccionJuego alquiler = PagarAlquilerActual(jugador.IdJugador);
+                if (alquiler.FueExitosa)
+                {
+                    return new ResultadoAccionJuego(
+                        true,
+                        alquiler.Mensaje,
+                        $"Alquiler={propiedad.Alquiler};Propietario={propiedad.Propietario.IdJugador}");
+                }
+
+                Jugador jugadorOficial = _servidor.Banco.ConsultarJugador(jugador.IdJugador);
+                if (jugadorOficial is not null && !jugadorOficial.EstaActivo)
+                {
+                    return new ResultadoAccionJuego(
+                        true,
+                        alquiler.Mensaje,
+                        "JugadorEliminado=True");
+                }
+
+                return alquiler;
+            }
+
+            if (casilla is CasillaEvento)
+            {
+                if (_mazoEventos is null || _mazoEventos.Cantidad == 0)
+                {
+                    return new ResultadoAccionJuego(
+                        true,
+                        "El jugador cayó en una casilla de evento, pero el mazo todavía no está configurado.",
+                        "Evento=NO_CONFIGURADO");
+                }
+
+                CartaEvento carta = _mazoEventos.ObtenerSiguienteCarta();
+                ResultadoAccionJuego evento = AplicarEvento(jugador.IdJugador, carta);
+                if (evento.FueExitosa)
+                    return new ResultadoAccionJuego(true, $"Carta: {carta.Descripcion}. {evento.Mensaje}", $"Evento={evento.Datos}");
+
+                Jugador jugadorOficial = _servidor.Banco.ConsultarJugador(jugador.IdJugador);
+                if (jugadorOficial is not null && !jugadorOficial.EstaActivo)
+                {
+                    return new ResultadoAccionJuego(
+                        true,
+                        evento.Mensaje,
+                        "JugadorEliminado=True");
+                }
+
+                return evento;
+            }
+
+            return new ResultadoAccionJuego(true, $"La casilla {casilla.Nombre} no requiere una operación adicional.");
+        }
+
+        private bool EsCompraPendienteDe(string idJugador)
+        {
+            return _idCompraPendiente is not null
+                && _idCompraPendiente.Equals(idJugador, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>Devuelve la representación espacial sin exponer el arreglo interno.</summary>

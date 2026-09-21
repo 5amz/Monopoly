@@ -1,5 +1,13 @@
 namespace Monopoly.Administracion;
 
+/// <summary>Estados oficiales posibles de una partida.</summary>
+public enum EstadoPartida
+{
+    EsperandoJugadores,
+    EnCurso,
+    Finalizada
+}
+
 /// <summary>
 /// Conserva el estado oficial y traduce solicitudes válidas a llamadas de Banco
 /// o de los módulos que se conectarán posteriormente.
@@ -13,6 +21,7 @@ public sealed class ServidorJuego
 
     public Banco Banco { get; }
     public EstadoPartida Estado { get; private set; }
+    public decimal SaldoInicialJugadores { get; }
 
     /// <summary>
     /// Crea el estado oficial. Los contratos son opcionales mientras los demás
@@ -20,12 +29,17 @@ public sealed class ServidorJuego
     /// </summary>
     public ServidorJuego(
         int maximoJugadores = 4,
+        decimal saldoInicialJugadores = 500000m,
         IValidadorTurnos turnos = null,
         IAccionesJuego accionesJuego = null,
         IRegistroJugadoresJuego registroJugadoresJuego = null,
         IEliminacionJugadoresJuego eliminacionJugadoresJuego = null)
     {
+        if (saldoInicialJugadores < 0)
+            throw new ArgumentOutOfRangeException(nameof(saldoInicialJugadores));
+
         Banco = new Banco(maximoJugadores);
+        SaldoInicialJugadores = saldoInicialJugadores;
         Estado = EstadoPartida.EsperandoJugadores;
         _turnos = turnos;
         _accionesJuego = accionesJuego;
@@ -34,12 +48,12 @@ public sealed class ServidorJuego
     }
 
     /// <summary>Registra un jugador únicamente antes de iniciar la partida.</summary>
-    public ResultadoOperacion RegistrarJugador(string id, string nombre, decimal saldoInicial)
+    public ResultadoOperacion RegistrarJugador(string id, string nombre)
     {
         if (Estado != EstadoPartida.EsperandoJugadores)
             return ResultadoOperacion.Error("No se pueden registrar jugadores después de iniciar la partida.");
 
-        ResultadoOperacion resultado = Banco.RegistrarJugador(id, nombre, saldoInicial);
+        ResultadoOperacion resultado = Banco.RegistrarJugador(id, nombre, SaldoInicialJugadores);
         if (!resultado.FueExitosa || _registroJugadoresJuego is null)
             return resultado;
 
@@ -203,7 +217,7 @@ public sealed class ServidorJuego
             return RespuestaProtocolo.Exito(ComandoProtocolo.CONECTAR, "Jugador identificado.", jugadorExistente.Id);
         }
 
-        ResultadoOperacion resultado = RegistrarJugador(solicitud.IdJugador, solicitud.NombreJugador, solicitud.SaldoInicial);
+        ResultadoOperacion resultado = RegistrarJugador(solicitud.IdJugador, solicitud.NombreJugador);
         return resultado.FueExitosa
             ? RespuestaProtocolo.Exito(ComandoProtocolo.CONECTAR, resultado.Mensaje, solicitud.IdJugador)
             : RespuestaProtocolo.Error("CONEXION_RECHAZADA", resultado.Mensaje);
