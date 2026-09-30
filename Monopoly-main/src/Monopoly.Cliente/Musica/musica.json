@@ -1,0 +1,141 @@
+{
+  "fondoActivado": false,
+  "segundosPorCasilla": 0.8,
+  "pistas": {
+    "casilla_01": {
+      "archivo": "casilla_01.mp3",
+      "inicioSegundos": 14,
+      "duracionSegundos": 10
+    },
+    "casilla_02": {
+      "archivo": "casilla_02.mp3",
+      "inicioSegundos": 0,
+      "duracionSegundos": 10.2
+    },
+    "casilla_04": {
+      "archivo": "casilla_04.mp3",
+      "inicioSegundos": 34,
+      "duracionSegundos": 10
+    },
+    "casilla_05": {
+      "archivo": "casilla_05.mp3",
+      "inicioSegundos": 70,
+      "duracionSegundos": 6
+    },
+    "casilla_06": {
+      "archivo": "casilla_06.mp3",
+      "inicioSegundos": 104,
+      "duracionSegundos": 11
+    },
+    "casilla_08": {
+      "archivo": "casilla_08.mp3",
+      "inicioSegundos": 45,
+      "duracionSegundos": 15
+    },
+    "casilla_09": {
+      "archivo": "casilla_09.mp3",
+      "inicioSegundos": 59,
+      "duracionSegundos": 12
+    },
+    "casilla_10": {
+      "archivo": "casilla_10.mp3",
+      "inicioSegundos": 0,
+      "duracionSegundos": 10
+    },
+    "casilla_12": {
+      "archivo": "casilla_12.mp3",
+      "inicioSegundos": 0,
+      "duracionSegundos": 20
+    },
+    "casilla_13": {
+      "archivo": "casilla_13.mp3",
+      "inicioSegundos": 70,
+      "duracionSegundos": 9
+    },
+    "casilla_14": {
+      "archivo": "casilla_14.mp3",
+      "inicioSegundos": 20,
+      "duracionSegundos": 20
+    },
+    "casilla_16": {
+      "archivo": "casilla_16.mp3",
+      "inicioSegundos": 20,
+      "duracionSegundos": 22
+    },
+    "casilla_17": {
+      "archivo": "casilla_17.mp3",
+      "inicioSegundos": 3,
+      "duracionSegundos": 14
+    },
+    "casilla_18": {
+      "archivo": "casilla_18.mp3",
+      "inicioSegundos": 0,
+      "duracionSegundos": 14
+    },
+    "casilla_20": {
+      "archivo": "casilla_20.mp3",
+      "inicioSegundos": 45,
+      "duracionSegundos": 21
+    },
+    "casilla_21": {
+      "archivo": "casilla_21.mp3",
+      "inicioSegundos": 51,
+      "duracionSegundos": 9
+    },
+    "casilla_22": {
+      "archivo": "casilla_22.mp3",
+      "inicioSegundos": 40,
+      "duracionSegundos": 14
+    },
+    "casilla_24": {
+      "archivo": "casilla_24.mp3",
+      "inicioSegundos": 44,
+      "duracionSegundos": 18
+    },
+    "fondo": {
+      "archivo": "fondo.mp3",
+      "inicioSegundos": 0,
+      "duracionSegundos": 100000
+    },
+    "victoria": {
+      "archivo": "victoria.mp3",
+      "inicioSegundos": 125,
+      "duracionSegundos": 30
+    },
+    "derrota": {
+      "archivo": "derrota.mp3",
+      "inicioSegundos": 0,
+      "duracionSegundos": 10
+    },
+    "carta_ganar": {
+      "archivo": "carta_ganar.mp3",
+      "inicioSegundos": 60,
+      "duracionSegundos": 8
+    },
+    "carta_perder": {
+      "archivo": "carta_perder.mp3",
+      "inicioSegundos": 3,
+      "duracionSegundos": 17
+    },
+    "carta_avanzar": {
+      "archivo": "carta_avanzar.mp3",
+      "inicioSegundos": 172,
+      "duracionSegundos": 12
+    },
+    "carta_retroceder": {
+      "archivo": "carta_retroceder.mp3",
+      "inicioSegundos": 25,
+      "duracionSegundos": 9
+    },
+    "carta_turno": {
+      "archivo": "carta_turno.mp3",
+      "inicioSegundos": 36,
+      "duracionSegundos": 13
+    },
+    "carta_viajar": {
+      "archivo": "carta_viajar.mp3",
+      "inicioSegundos": 60,
+      "duracionSegundos": 10
+    }
+  }
+}
