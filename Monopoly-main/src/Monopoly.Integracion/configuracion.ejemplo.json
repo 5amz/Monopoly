@@ -1,0 +1,21 @@
+{
+  "SaldoInicial": 1500000,
+  "MaxTurnos": 60,
+  "PremioInicio": 200000,
+  "Impuesto": 100000,
+  "ImpuestoEspecial": 150000,
+  "PremioEvento": 100000,
+  "CobroEvento": 50000,
+  "AvanceEvento": 3,
+  "RetrocesoEvento": 2,
+  "DestinoEvento": 0,
+  "UsarHardware": true,
+  "PuertoSerial": "COM3",
+  "RutaTransacciones": "transacciones-partida.txt",
+  "Tarjetas": [
+    { "Uid": "62384551", "IdJugador": "J1" },
+    { "Uid": "A98F8656", "IdJugador": "J2" },
+    { "Uid": "D03B9032", "IdJugador": "J3" },
+    { "Uid": "2203D734", "IdJugador": "J4" }
+  ]
+}
