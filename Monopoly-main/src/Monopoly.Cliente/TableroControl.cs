@@ -10,7 +10,8 @@ public sealed class TableroControl : Panel
     private IControladorJuego? controlador;
     private readonly ToolTip detalle = new();
     private string ultimaPista = "";
-    // Prepara el tablero para dibujar sin parpadeos.
+    
+// Crea el objeto.
     public TableroControl()
     {
         DoubleBuffered = true;
@@ -18,28 +19,32 @@ public sealed class TableroControl : Panel
         Dock = DockStyle.Fill;
     }
 
-    // Guarda el controlador de esta vista.
+    
+// Ejecuta Vincular.
     public void Vincular(IControladorJuego juego)
     {
         controlador = juego;
         controlador.CambiarTamano(ClientSize.Width, ClientSize.Height);
     }
 
-    // Guarda la escena y pide dibujarla.
+    
+// Ejecuta Mostrar.
     public void Mostrar(EscenaTablero nueva)
     {
         escena = nueva;
         Invalidate();
     }
 
-    // Avisa al controlador del nuevo tamaño del tablero.
+    
+// Ejecuta OnResize.
     protected override void OnResize(EventArgs e)
     {
         base.OnResize(e);
         controlador?.CambiarTamano(ClientSize.Width, ClientSize.Height);
     }
 
-    // Muestra los datos de la casilla bajo el cursor.
+    
+// Ejecuta OnMouseMove.
     protected override void OnMouseMove(MouseEventArgs e)
     {
         base.OnMouseMove(e);
@@ -61,7 +66,8 @@ public sealed class TableroControl : Panel
         }
     }
 
-    // Libera los recursos al cerrar.
+    
+// Ejecuta Dispose.
     protected override void Dispose(bool disposing)
     {
         if (disposing)
@@ -72,7 +78,8 @@ public sealed class TableroControl : Panel
         base.Dispose(disposing);
     }
 
-    // Dibuja el control en la pantalla.
+    
+// Ejecuta OnPaint.
     protected override void OnPaint(PaintEventArgs e)
     {
         base.OnPaint(e);

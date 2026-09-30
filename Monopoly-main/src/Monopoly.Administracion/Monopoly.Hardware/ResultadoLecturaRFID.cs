@@ -8,6 +8,7 @@ public sealed class ResultadoLecturaRFID
 
     public string? IdJugador {get;}
 
+// Crea el objeto.
     public ResultadoLecturaRFID(
         bool fueEncontrado,
         string? idJugador)

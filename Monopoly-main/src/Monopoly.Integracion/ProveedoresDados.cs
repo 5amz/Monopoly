@@ -3,10 +3,11 @@ using Monopoly.Hardware;
 
 namespace Monopoly.Integracion;
 
-/// <summary>Resultados físicos validados. El coordinador consume cada resultado una sola vez.</summary>
+
 public sealed class ProveedorDadosFisico : IProveedorDados
 {
     private ResultadoDados pendiente;
+// Ejecuta Entregar.
     public bool Entregar(ResultadoDados resultado)
     {
         if (pendiente != null) return false;
@@ -14,6 +15,7 @@ public sealed class ProveedorDadosFisico : IProveedorDados
         return true;
     }
 
+// Ejecuta IntentarConsumirResultado.
     public bool IntentarConsumirResultado(out ResultadoDados resultado)
     {
         resultado = pendiente;
@@ -21,15 +23,18 @@ public sealed class ProveedorDadosFisico : IProveedorDados
         return resultado != null;
     }
 
+// Ejecuta Descartar.
     public void Descartar() => pendiente = null;
 }
 
-/// <summary>Solo desarrollo: genera una entrada DADO que atraviesa el mismo analizador serial.</summary>
+
 public sealed class ProveedorDadosSimulado : IProveedorDados
 {
     private readonly Random azar;
+// Crea el objeto.
     public ProveedorDadosSimulado(int? semilla = null) => azar = semilla.HasValue ? new Random(semilla.Value) : new Random();
 
+// Ejecuta IntentarConsumirResultado.
     public bool IntentarConsumirResultado(out ResultadoDados resultado)
     {
         int uno = azar.Next(1, 7);
@@ -40,18 +45,20 @@ public sealed class ProveedorDadosSimulado : IProveedorDados
     }
 }
 
-/// <summary>Observa lo consumido sin modificar ni repetir las reglas del coordinador.</summary>
+
 internal sealed class ProveedorDadosObservado : IProveedorDados
 {
     private readonly IProveedorDados origen;
     private readonly ProveedorDadosFisico serial;
     internal ResultadoDados Ultimo { get; private set; }
+// Crea el objeto.
     internal ProveedorDadosObservado(IProveedorDados origen, ProveedorDadosFisico serial)
     {
         this.origen = origen;
         this.serial = serial;
     }
 
+// Ejecuta IntentarConsumirResultado.
     public bool IntentarConsumirResultado(out ResultadoDados resultado)
     {
         bool disponible = serial.IntentarConsumirResultado(out resultado) || origen.IntentarConsumirResultado(out resultado);
@@ -59,5 +66,6 @@ internal sealed class ProveedorDadosObservado : IProveedorDados
         return disponible;
     }
 
+// Ejecuta Limpiar.
     internal void Limpiar() { Ultimo = null; serial.Descartar(); }
 }

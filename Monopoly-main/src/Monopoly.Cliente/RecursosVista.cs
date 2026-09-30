@@ -12,7 +12,8 @@ internal static class RecursosVista
     public static string Carpeta { get; private set; } = "";
     public static string Informe => string.Join(Environment.NewLine, incidencias);
 
-    // Carga las imágenes desde su carpeta.
+    
+// Ejecuta Cargar.
     public static void Cargar(string? carpeta = null)
     {
         Liberar();
@@ -31,7 +32,8 @@ internal static class RecursosVista
         for (int n = 1; n <= 6; n++) CargarImagen("dado_" + n);
     }
 
-    // Carga una imagen y avisa si no se puede leer.
+    
+// Ejecuta CargarImagen.
     private static void CargarImagen(string nombre)
     {
         try
@@ -55,7 +57,8 @@ internal static class RecursosVista
         }
     }
 
-    // Busca una imagen por su nombre.
+    
+// Ejecuta Obtener.
     public static Image? Obtener(string nombre)
     {
         foreach (var imagen in imagenes)
@@ -63,7 +66,8 @@ internal static class RecursosVista
         return null;
     }
 
-    // Libera las imágenes cargadas.
+    
+// Ejecuta Liberar.
     public static void Liberar()
     {
         foreach (var imagen in imagenes) imagen.Imagen.Dispose();

@@ -1,10 +1,11 @@
 namespace Monopoly.Administracion;
 
-/// <summary>Una cara válida. El resultado físico o simulado la entrega al servidor.</summary>
+
 public sealed class Dado
 {
     public int Valor { get; }
 
+// Crea el objeto.
     public Dado(int valor)
     {
         if (valor is < 1 or > 6)

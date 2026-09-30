@@ -8,16 +8,20 @@ namespace Monopoly.Cliente;
 
 internal sealed class AudioWindows : IAudioCiudad
 {
+// Ejecuta mciSendString.
     [DllImport("winmm.dll", CharSet = CharSet.Unicode)]
     private static extern int mciSendString(string comando, StringBuilder? respuesta, int capacidad, IntPtr ventana);
     private readonly Action<string> informar;
     private readonly string alias = "ciudad_" + Guid.NewGuid().ToString("N");
     private bool abierto;
-    // Guarda la función que recibe avisos de audio.
+    
+// Crea el objeto.
     public AudioWindows(Action<string> informar) => this.informar = informar;
-    // Envía una orden al reproductor de Windows.
+    
+// Ejecuta Comando.
     private bool Comando(string texto) => mciSendString(texto, null, 0, IntPtr.Zero) == 0;
-    // Reproduce el fragmento elegido de la canción.
+    
+// Ejecuta Reproducir.
     public bool Reproducir(string archivo, double inicio, double duracion)
     {
         Detener();
@@ -54,13 +58,15 @@ internal sealed class AudioWindows : IAudioCiudad
             return mciSendString("status " + alias + " mode", estado, estado.Capacity, IntPtr.Zero) == 0 && estado.ToString() == "playing";
         }
     }
-    // Detiene el recurso en uso.
+    
+// Ejecuta Detener.
     public void Detener()
     {
         if (abierto) Comando("close " + alias);
         abierto = false;
     }
-    // Libera los recursos al cerrar.
+    
+// Ejecuta Dispose.
     public void Dispose() => Detener();
 }
 

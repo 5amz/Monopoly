@@ -11,7 +11,8 @@ public sealed class JugadorVista
     public bool Activo { get; }
     public ListaSimple<int> Propiedades { get; }
 
-    // Guarda los datos del jugador y deja sus propiedades solo para lectura.
+    
+// Crea el objeto.
     public JugadorVista(string id, string nombre, decimal saldo, int posicion, bool activo, ListaSimple<int> propiedades)
     {
         Id = id;
@@ -37,7 +38,8 @@ public sealed class CasillaVista
     public FragmentoMusical? Musica { get; internal set; }
     internal ConfiguracionMusica? ConfiguracionMusical { get; set; }
 
-    // Guarda los datos de la casilla recibidos del servidor.
+    
+// Crea el objeto.
     public CasillaVista(int id, string tipo, string nombre, decimal precio, decimal alquiler, string propietario)
     {
         Id = id;
@@ -62,7 +64,8 @@ public sealed class TransaccionVista
     public decimal Monto { get; }
     public string Descripcion { get; }
 
-    // Guarda los datos recibidos de una transacción.
+    
+// Crea el objeto.
     public TransaccionVista(int Id, int Turno, string Tipo, string Origen, string Destino, decimal Monto, string Descripcion)
     {
         this.Id = Id;
@@ -83,7 +86,8 @@ public sealed class EstadoBotones
     public bool PuedeTerminarTurno { get; }
     public bool PuedeVerHistorial { get; }
 
-    // Guarda cuáles acciones permite el controlador.
+    
+// Crea el objeto.
     public EstadoBotones(bool PuedeTirarDados = false, bool PuedeComprar = false, bool PuedeNoComprar = false, bool PuedeTerminarTurno = false, bool PuedeVerHistorial = false)
     {
         this.PuedeTirarDados = PuedeTirarDados;
@@ -101,7 +105,8 @@ public sealed class ResultadoPartida
     public decimal Patrimonio { get; }
     public string Motivo { get; }
 
-    // Guarda el resultado que anunció el servidor.
+    
+// Crea el objeto.
     public ResultadoPartida(string IdGanador, string Nombre, decimal Patrimonio, string Motivo)
     {
         this.IdGanador = IdGanador;
@@ -119,7 +124,8 @@ public sealed class EstadoConexion
     public int Turno { get; }
     public int MaxTurnos { get; }
 
-    // Guarda el estado, el texto y el modo (HARDWARE/SIMULADOR) oficiales de la conexión.
+    
+// Crea el objeto.
     public EstadoConexion(bool Conectado, string Texto, string Modo = "", int Turno = 0, int MaxTurnos = 0)
     {
         this.Conectado = Conectado;
@@ -137,7 +143,8 @@ public sealed class Rectangulo
     public double Ancho { get; }
     public double Alto { get; }
 
-    // Guarda la posición y el tamaño de un elemento.
+    
+// Crea el objeto.
     public Rectangulo(double X, double Y, double Ancho, double Alto)
     {
         this.X = X;
@@ -154,7 +161,8 @@ public sealed class ElementoEscena
     public string Contenido { get; }
     public string Destino { get; }
 
-    // Guarda el tipo, el lugar y el contenido que se va a dibujar.
+    
+// Crea el objeto.
     public ElementoEscena(string Tipo, Rectangulo Area, string Contenido, string Destino = "")
     {
         this.Tipo = Tipo;
@@ -168,7 +176,8 @@ public sealed class EscenaTablero
 {
     public ListaSimple<ElementoEscena> Elementos { get; }
 
-    // Guarda los elementos que debe mostrar el tablero.
+    
+// Crea el objeto.
     public EscenaTablero(ListaSimple<ElementoEscena> Elementos)
     {
         this.Elementos = Elementos;
@@ -182,7 +191,8 @@ public sealed class PaginaHistorial
     public bool PuedeAnterior { get; }
     public bool PuedeSiguiente { get; }
 
-    // Guarda la transacción y las opciones que mostrará el historial.
+    
+// Crea el objeto.
     public PaginaHistorial(string Texto, string Contador, bool PuedeAnterior, bool PuedeSiguiente)
     {
         this.Texto = Texto;
@@ -196,82 +206,116 @@ public sealed record EfectoMultimedia(string Tipo, string Jugador = "", CartaVis
 
 public interface IVistaJuego
 {
-    // Solo efectos de presentación; nunca ejecuta operaciones del banco.
+    
+// Ejecuta MostrarEfecto.
     void MostrarEfecto(EfectoMultimedia efecto) { }
 
-    // Muestra los elementos que preparó el núcleo.
+    
+// Ejecuta MostrarEscena.
     void MostrarEscena(EscenaTablero escena);
-    // Muestra los jugadores y el id de quien tiene el turno.
+    
+// Ejecuta MostrarJugadores.
     void MostrarJugadores(ListaSimple<JugadorVista> jugadores, string idEnTurno);
-    // Muestra los dados y su origen recibidos del servidor.
+    
+// Ejecuta MostrarDados.
     void MostrarDados(int dado1, int dado2, int total, bool esHardware);
-    // Asigna a los botones las opciones que permite el controlador.
+    
+// Ejecuta MostrarEstadoBotones.
     void MostrarEstadoBotones(EstadoBotones estado);
-    // Muestra el registro que preparó el núcleo.
+    
+// Ejecuta AgregarLineaLog.
     void AgregarLineaLog(string linea);
-    // Muestra la carta recibida y su efecto oficial.
+    
+// Ejecuta MostrarCarta.
     void MostrarCarta(string cancion, string texto, string efecto, int valor);
-    // Muestra el mensaje de error.
+    
+// Ejecuta MostrarError.
     void MostrarError(string codigo, string mensaje);
-    // Muestra el ganador que anunció el servidor.
+    
+// Ejecuta MostrarFinPartida.
     void MostrarFinPartida(ResultadoPartida resultado);
-    // Muestra el estado de la conexión y del turno.
+    
+// Ejecuta MostrarEstadoConexion.
     void MostrarEstadoConexion(EstadoConexion estado);
-    // Pide de forma prominente la tarjeta RFID del jugador que debe pagar (compra, alquiler, impuesto o carta);
-    // es la única confirmación de la acción, sin diálogo intermedio. tarjetaRechazada indica un UID incorrecto.
+    
+    
+// Ejecuta MostrarPagoPendiente.
     void MostrarPagoPendiente(string idJugador, string descripcion, bool tarjetaRechazada);
-    // Oculta el aviso de tarjeta pendiente una vez resuelto el pago.
+    
+// Ejecuta OcultarPagoPendiente.
     void OcultarPagoPendiente();
 }
 
-/// <summary>Superficie que usan las vistas de WinForms; permite sustituir un ControladorJuego real por un enrutador de mesa compartida.</summary>
+
 public interface IControladorJuego
 {
     MotorAnimacion Motor { get; }
     EstadoLocal? Estado => null;
+// Ejecuta VincularHistorial.
     void VincularHistorial(IVistaTransacciones historial);
+// Ejecuta CambiarTamano.
     void CambiarTamano(double anchoDisponible, double altoDisponible);
+// Ejecuta SolicitarTirarDados.
     void SolicitarTirarDados();
-    // Pide la compra directamente: la tarjeta RFID es la única confirmación, sin diálogo intermedio.
+    
+// Ejecuta SolicitarComprar.
     void SolicitarComprar();
+// Ejecuta RechazarCompra.
     void RechazarCompra();
+// Ejecuta TerminarTurno.
     void TerminarTurno();
-    // Solo modo simulador: pide al servidor que procese esta tarjeta como si llegara por su propio puerto serial.
+    
+// Ejecuta SimularTarjetaRemota.
     void SimularTarjetaRemota(string uid);
+// Ejecuta AbrirHistorial.
     void AbrirHistorial();
+// Ejecuta FiltrarHistorial.
     void FiltrarHistorial(string jugador, string tipo);
+// Ejecuta HistorialAnterior.
     void HistorialAnterior();
+// Ejecuta HistorialSiguiente.
     void HistorialSiguiente();
+// Ejecuta HistorialPrimero.
     void HistorialPrimero();
+// Ejecuta HistorialUltimo.
     void HistorialUltimo();
 }
 
 public interface IVistaConexion
 {
-    // Muestra el aviso y activa o desactiva los botones de conexión.
+    
+// Ejecuta MostrarConexion.
     void MostrarConexion(string texto, bool puedeConectar);
-    // Muestra los nombres de los jugadores conectados.
+    
+// Ejecuta MostrarSala.
     void MostrarSala(string jugadores);
-    // Abre la ventana del juego.
+    
+// Ejecuta AbrirJuego.
     void AbrirJuego();
-    // Recibe o pide la confirmación antes de cerrar la partida.
+    
+// Ejecuta ConfirmarCierre.
     void ConfirmarCierre(string texto, Action<bool> respuesta);
-    // Cierra las ventanas de la aplicación.
+    
+// Ejecuta CerrarAplicacion.
     void CerrarAplicacion();
 }
 
 public interface IVistaTransacciones
 {
-    // Muestra la transacción seleccionada y los botones de navegación.
+    
+// Ejecuta MostrarHistorial.
     void MostrarHistorial(PaginaHistorial pagina);
-    // Muestra las opciones para filtrar el historial.
+    
+// Ejecuta MostrarFiltros.
     void MostrarFiltros(ListaSimple<string> jugadores, ListaSimple<string> tipos);
-    // Abre la vista del historial.
+    
+// Ejecuta Abrir.
     void Abrir();
 }
 
 public interface ISincronizadorUI
 {
-    // Ejecuta la acción en el hilo que usa la vista.
+    
+// Ejecuta Ejecutar.
     void Ejecutar(Action accion);
 }

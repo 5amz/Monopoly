@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace Monopoly.Hardware;
 
-/// <summary>Tabla de asociación propia mediante nodos; una tarjeta nunca contiene saldo.</summary>
+
 public sealed class RegistroTarjetasRFID
 {
     private sealed class NodoTarjeta
@@ -11,11 +11,13 @@ public sealed class RegistroTarjetasRFID
         public string Uid { get; }
         public string IdJugador { get; }
         public NodoTarjeta? Siguiente { get; set; }
+// Crea el objeto.
         public NodoTarjeta(string uid, string idJugador) { Uid = uid; IdJugador = idJugador; }
     }
 
     private NodoTarjeta? _primera;
 
+// Crea el objeto.
     public RegistroTarjetasRFID(bool incluirPredeterminadas = true)
     {
         if (!incluirPredeterminadas) return;
@@ -25,7 +27,8 @@ public sealed class RegistroTarjetasRFID
         Registrar("2203D734", "J4");
     }
 
-    /// <summary>Configuración local del servidor; impide asignar una tarjeta a dos jugadores.</summary>
+    
+// Ejecuta Registrar.
     public void Registrar(string uid, string idJugador)
     {
         if (!IntentarNormalizarUid(uid, out string normalizado))
@@ -42,6 +45,7 @@ public sealed class RegistroTarjetasRFID
         _primera = new NodoTarjeta(normalizado, idJugador) { Siguiente = _primera };
     }
 
+// Ejecuta BuscarJugador.
     public ResultadoLecturaRFID BuscarJugador(string uid)
     {
         if (IntentarNormalizarUid(uid, out string normalizado))
@@ -52,7 +56,8 @@ public sealed class RegistroTarjetasRFID
         return new ResultadoLecturaRFID(false, null);
     }
 
-    /// <summary>UID de 4/7/10 bytes. Compatibilidad temporal: cuatro bytes más BCC válido.</summary>
+    
+// Ejecuta IntentarNormalizarUid.
     public static bool IntentarNormalizarUid(string? uid, out string normalizado)
     {
         normalizado = string.Empty;

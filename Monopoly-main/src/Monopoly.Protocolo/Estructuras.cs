@@ -8,7 +8,8 @@ public sealed class NodoSimple<T>
     public T Valor { get; internal set; }
     public NodoSimple<T>? Siguiente { get; internal set; }
 
-    // Guarda el valor del nuevo nodo.
+    
+// Crea el objeto.
     internal NodoSimple(T valor)
     {
         Valor = valor;
@@ -23,7 +24,8 @@ public sealed class ListaSimple<T> : IEnumerable<T>
     public int Cantidad { get; private set; }
     public bool EsSoloLectura => congelada;
 
-    // Agrega un elemento al final de la estructura.
+    
+// Ejecuta Agregar.
     public void Agregar(T valor)
     {
         Comprobar();
@@ -41,7 +43,8 @@ public sealed class ListaSimple<T> : IEnumerable<T>
         Cantidad++;
     }
 
-    // Busca y devuelve el dato solicitado.
+    
+// Ejecuta Obtener.
     public T Obtener(int indice)
     {
         if (indice < 0 || indice >= Cantidad)
@@ -58,7 +61,8 @@ public sealed class ListaSimple<T> : IEnumerable<T>
         return n.Valor;
     }
 
-    // Recorre la lista hasta encontrar un dato que cumpla la condición.
+    
+// Ejecuta Buscar.
     public bool Buscar(Predicate<T> predicado, out T valor)
     {
         for (var n = primero; n is not null; n = n.Siguiente)
@@ -74,7 +78,8 @@ public sealed class ListaSimple<T> : IEnumerable<T>
         return false;
     }
 
-    // Elimina el primer dato que cumpla la condición.
+    
+// Ejecuta Quitar.
     public bool Quitar(Predicate<T> predicado)
     {
         Comprobar();
@@ -107,7 +112,8 @@ public sealed class ListaSimple<T> : IEnumerable<T>
         return false;
     }
 
-    // Quita todos los datos de la estructura.
+    
+// Ejecuta Limpiar.
     public void Limpiar()
     {
         Comprobar();
@@ -115,14 +121,16 @@ public sealed class ListaSimple<T> : IEnumerable<T>
         Cantidad = 0;
     }
 
-    // Deja la estructura solo para lectura.
+    
+// Ejecuta Congelar.
     public ListaSimple<T> Congelar()
     {
         congelada = true;
         return this;
     }
 
-    // Comprueba que la lista permita cambios.
+    
+// Ejecuta Comprobar.
     private void Comprobar()
     {
         if (congelada)
@@ -131,7 +139,8 @@ public sealed class ListaSimple<T> : IEnumerable<T>
         }
     }
 
-    // Recorre los elementos de la lista en orden.
+    
+// Ejecuta GetEnumerator.
     public IEnumerator<T> GetEnumerator()
     {
         for (var n = primero; n is not null; n = n.Siguiente)
@@ -140,7 +149,8 @@ public sealed class ListaSimple<T> : IEnumerable<T>
         }
     }
 
-    // Recorre los elementos de la lista en orden.
+    
+// Ejecuta GetEnumerator.
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
@@ -153,7 +163,8 @@ public sealed class NodoDoble<T>
     public NodoDoble<T>? Anterior { get; internal set; }
     public NodoDoble<T>? Siguiente { get; internal set; }
 
-    // Guarda el valor del nuevo nodo.
+    
+// Crea el objeto.
     internal NodoDoble(T valor)
     {
         Valor = valor;
@@ -166,7 +177,8 @@ public sealed class ListaCircularDoble<T> : IEnumerable<T>
     private bool congelada;
     public int Cantidad { get; private set; }
 
-    // Agrega un elemento al final de la estructura.
+    
+// Ejecuta Agregar.
     public void Agregar(T valor)
     {
         if (congelada)
@@ -191,7 +203,8 @@ public sealed class ListaCircularDoble<T> : IEnumerable<T>
         Cantidad++;
     }
 
-    // Busca y devuelve el dato solicitado.
+    
+// Ejecuta Obtener.
     public T Obtener(int posicion)
     {
         if (posicion < 0 || posicion >= Cantidad)
@@ -208,14 +221,16 @@ public sealed class ListaCircularDoble<T> : IEnumerable<T>
         return n.Valor;
     }
 
-    // Deja la estructura solo para lectura.
+    
+// Ejecuta Congelar.
     public ListaCircularDoble<T> Congelar()
     {
         congelada = true;
         return this;
     }
 
-    // Recorre los elementos de la lista en orden.
+    
+// Ejecuta GetEnumerator.
     public IEnumerator<T> GetEnumerator()
     {
         var n = cabeza;
@@ -226,7 +241,8 @@ public sealed class ListaCircularDoble<T> : IEnumerable<T>
         }
     }
 
-    // Recorre los elementos de la lista en orden.
+    
+// Ejecuta GetEnumerator.
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
@@ -240,7 +256,8 @@ public sealed class ColaCircular<T>
     private NodoSimple<T> escritura;
     public int Cantidad { get; private set; }
 
-    // Crea los nodos de la cola y conecta el último con el primero.
+    
+// Crea el objeto.
     public ColaCircular(int capacidad)
     {
         if (capacidad < 1)
@@ -260,7 +277,8 @@ public sealed class ColaCircular<T>
         n.Siguiente = lectura;
     }
 
-    // Agrega un dato al final de la cola si queda espacio.
+    
+// Ejecuta Encolar.
     public bool Encolar(T valor)
     {
         if (Cantidad == capacidad)
@@ -274,7 +292,8 @@ public sealed class ColaCircular<T>
         return true;
     }
 
-    // Saca el dato más antiguo de la cola.
+    
+// Ejecuta Desencolar.
     public bool Desencolar(out T valor)
     {
         if (Cantidad == 0)
@@ -290,13 +309,15 @@ public sealed class ColaCircular<T>
         return true;
     }
 
-    // Devuelve el primer dato sin sacarlo de la cola.
+    
+// Ejecuta Primero.
     public T Primero()
     {
         return Cantidad > 0 ? lectura.Valor : throw new InvalidOperationException("La cola está vacía.");
     }
 
-    // Crea una copia de los datos actuales de la cola.
+    
+// Ejecuta Instantanea.
     public ListaSimple<T> Instantanea()
     {
         var copia = new ListaSimple<T>();
@@ -310,7 +331,8 @@ public sealed class ColaCircular<T>
         return copia.Congelar();
     }
 
-    // Quita todos los datos de la estructura.
+    
+// Ejecuta Limpiar.
     public void Limpiar()
     {
         while (Desencolar(out _))

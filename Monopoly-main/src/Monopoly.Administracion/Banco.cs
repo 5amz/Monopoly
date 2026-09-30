@@ -5,10 +5,10 @@ using System.Text;
 
 namespace Monopoly.Administracion;
 
-/// <summary>
-/// Resultado de una operación administrativa sin exponer la modificación
-/// directa del jugador a otros módulos.
-/// </summary>
+
+
+
+
 public sealed class ResultadoOperacion
 {
     public bool FueExitosa { get; }
@@ -17,6 +17,7 @@ public sealed class ResultadoOperacion
     public decimal SaldoActual { get; }
     public bool FueRechazadaPorFondosInsuficientes { get; }
 
+// Crea el objeto.
     private ResultadoOperacion(
         bool fueExitosa,
         string mensaje,
@@ -31,9 +32,11 @@ public sealed class ResultadoOperacion
         FueRechazadaPorFondosInsuficientes = fueRechazadaPorFondosInsuficientes;
     }
 
+// Ejecuta Exito.
     public static ResultadoOperacion Exito(string mensaje, decimal saldoAnterior, decimal saldoActual)
         => new(true, mensaje, saldoAnterior, saldoActual, false);
 
+// Ejecuta Error.
     public static ResultadoOperacion Error(
         string mensaje,
         decimal saldoActual = 0,
@@ -41,10 +44,10 @@ public sealed class ResultadoOperacion
         => new(false, mensaje, saldoActual, saldoActual, fueRechazadaPorFondosInsuficientes);
 }
 
-/// <summary>
-/// Autoridad para registrar jugadores, modificar dinero y guardar el historial
-/// oficial de cada operación económica.
-/// </summary>
+
+
+
+
 public sealed class Banco
 {
     public const string IdentificadorBanco = "BANCO";
@@ -53,10 +56,11 @@ public sealed class Banco
     private readonly int _maximoJugadores;
     private readonly object _bloqueo = new();
 
-    /// <summary>Historial oficial; sus nodos permanecen privados.</summary>
+    
     public HistorialTransacciones Historial { get; } = new();
 
-    /// <summary>Crea el Banco e indica cuántos jugadores puede registrar.</summary>
+    
+// Crea el objeto.
     public Banco(int maximoJugadores = 4)
     {
         if (maximoJugadores <= 0)
@@ -65,7 +69,7 @@ public sealed class Banco
         _maximoJugadores = maximoJugadores;
     }
 
-    /// <summary>Obtiene la cantidad actual de jugadores registrados.</summary>
+    
     public int CantidadJugadores
     {
         get
@@ -75,7 +79,7 @@ public sealed class Banco
         }
     }
 
-    /// <summary>Cuenta jugadores que siguen activos en el estado oficial.</summary>
+    
     public int CantidadJugadoresActivos
     {
         get
@@ -94,7 +98,8 @@ public sealed class Banco
         }
     }
 
-    /// <summary>Valida y registra un jugador nuevo.</summary>
+    
+// Ejecuta RegistrarJugador.
     public ResultadoOperacion RegistrarJugador(string id, string nombre, decimal saldoInicial)
     {
         lock (_bloqueo)
@@ -119,7 +124,8 @@ public sealed class Banco
         }
     }
 
-    /// <summary>Busca un jugador por ID; devuelve null si no existe.</summary>
+    
+// Ejecuta ConsultarJugador.
     public Jugador? ConsultarJugador(string id)
     {
         if (string.IsNullOrWhiteSpace(id))
@@ -129,13 +135,15 @@ public sealed class Banco
             return _jugadores.BuscarPorId(id);
     }
 
-    /// <summary>Consulta el saldo oficial de un jugador.</summary>
+    
+// Ejecuta ConsultarSaldo.
     public decimal? ConsultarSaldo(string id)
     {
         return ConsultarJugador(id)?.Saldo;
     }
 
-    /// <summary>Recorre el registro propio sin exponer sus nodos.</summary>
+    
+// Ejecuta RecorrerJugadores.
     public void RecorrerJugadores(Action<Jugador> accion)
     {
         ArgumentNullException.ThrowIfNull(accion);
@@ -143,13 +151,15 @@ public sealed class Banco
             _jugadores.Recorrer(accion);
     }
 
+// Ejecuta CancelarRegistroIncompleto.
     internal void CancelarRegistroIncompleto(string idJugador)
     {
         lock (_bloqueo)
             _jugadores.Retirar(idJugador);
     }
 
-    /// <summary>Genera un resumen de jugadores para sincronizar clientes.</summary>
+    
+// Ejecuta GenerarResumenJugadores.
     public string GenerarResumenJugadores()
     {
         lock (_bloqueo)
@@ -175,9 +185,10 @@ public sealed class Banco
         }
     }
 
-    /// <summary>
-    /// Abona dinero y registra una ganancia por evento o por pasar por inicio.
-    /// </summary>
+    
+
+
+// Ejecuta Abonar.
     public ResultadoOperacion Abonar(
         string idJugador,
         decimal monto,
@@ -213,9 +224,10 @@ public sealed class Banco
         }
     }
 
-    /// <summary>
-    /// Cobra dinero a un jugador y registra una compra, pago al Banco o pérdida por evento.
-    /// </summary>
+    
+
+
+// Ejecuta Cobrar.
     public ResultadoOperacion Cobrar(
         string idJugador,
         decimal monto,
@@ -258,9 +270,10 @@ public sealed class Banco
         }
     }
 
-    /// <summary>
-    /// Transfiere dinero entre dos jugadores y registra alquiler o pago entre jugadores.
-    /// </summary>
+    
+
+
+// Ejecuta Transferir.
     public ResultadoOperacion Transferir(
         string idOrigen,
         string idDestino,
@@ -308,5 +321,6 @@ public sealed class Banco
         }
     }
 
+// Ejecuta EsMontoValido.
     private static bool EsMontoValido(decimal monto) => monto > 0;
 }

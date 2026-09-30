@@ -72,7 +72,8 @@ public sealed class FormConexion : Form, IVistaConexion
     private ControladorMesaConexion controladorMesa = null !;
     private readonly Action abrir;
     private readonly Action cerrar;
-    // Prepara la ventana de conexión.
+    
+// Crea el objeto.
     public FormConexion(Action abrirJuego, Action cerrarAplicacion)
     {
         abrir = abrirJuego;
@@ -148,7 +149,8 @@ public sealed class FormConexion : Form, IVistaConexion
         TemaCiudad.Aplicar(this, monocromo: true);
     }
 
-    // Muestra la carpeta y las imágenes que faltan.
+    
+// Ejecuta MostrarInformeImagenes.
     private void MostrarInformeImagenes()
     {
         using var informe = new Form { Text = "Imágenes", ClientSize = new Size(700, 480), StartPosition = FormStartPosition.CenterParent };
@@ -163,7 +165,8 @@ public sealed class FormConexion : Form, IVistaConexion
         informe.ShowDialog(this);
     }
 
-    // Muestra los nombres que usa esta pantalla.
+    
+// Ejecuta ActualizarNombresVisibles.
     private void ActualizarNombresVisibles()
     {
         int cantidad = (int)cantidadJugadores.Value;
@@ -174,7 +177,8 @@ public sealed class FormConexion : Form, IVistaConexion
         for (int i = 0; i < etiquetasNombre.Length; i++) etiquetasNombre[i].Visible = i < cantidad;
     }
 
-    // Ajusta las opciones para crear o unirse a una partida.
+    
+// Ejecuta ActualizarModo.
     private void ActualizarModo()
     {
         bool aloja = alojarAqui.Checked;
@@ -185,13 +189,15 @@ public sealed class FormConexion : Form, IVistaConexion
             : "Escribe la IP de la computadora que creó la partida. El Pico se conecta allí.";
     }
 
-    // Guarda el controlador de la conexión.
+    
+// Ejecuta VincularMesa.
     public void VincularMesa(ControladorMesaConexion valor)
     {
         controladorMesa = valor;
     }
 
-    // Devuelve los nombres de los jugadores elegidos.
+    
+// Ejecuta NombresActivos.
     private string[] NombresActivos()
     {
         int cantidad = (int)cantidadJugadores.Value;
@@ -201,7 +207,8 @@ public sealed class FormConexion : Form, IVistaConexion
         return activos;
     }
 
-    // Pide crear la partida o unirse al servidor.
+    
+// Ejecuta Iniciar_Click.
     private void Iniciar_Click(object? sender, EventArgs e)
     {
         if (alojarAqui.Checked)
@@ -214,7 +221,8 @@ public sealed class FormConexion : Form, IVistaConexion
         }
     }
 
-    // Muestra el estado y habilita los campos de conexión.
+    
+// Ejecuta MostrarConexion.
     public void MostrarConexion(string texto, bool puedeConectar)
     {
         estado.Text = texto;
@@ -228,25 +236,29 @@ public sealed class FormConexion : Form, IVistaConexion
         nombreJ1.Enabled = nombreJ2.Enabled = nombreJ3.Enabled = nombreJ4.Enabled = puedeConectar;
     }
 
-    // Muestra los jugadores conectados.
+    
+// Ejecuta MostrarSala.
     public void MostrarSala(string jugadores)
     {
         sala.Text = jugadores;
     }
 
-    // Abre la ventana del juego.
+    
+// Ejecuta AbrirJuego.
     public void AbrirJuego()
     {
         abrir();
     }
 
-    // Pide confirmar el cierre de la partida.
+    
+// Ejecuta ConfirmarCierre.
     public void ConfirmarCierre(string texto, Action<bool> respuesta)
     {
         respuesta(MessageBox.Show(texto, "Cerrar partida", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes);
     }
 
-    // Cierra la aplicación.
+    
+// Ejecuta CerrarAplicacion.
     public void CerrarAplicacion()
     {
         cerrar();

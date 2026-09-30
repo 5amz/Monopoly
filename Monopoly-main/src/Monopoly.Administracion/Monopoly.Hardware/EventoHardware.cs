@@ -10,6 +10,7 @@ public sealed class EventoHardware
     public string Valor {get;}
     public ResultadoDados? ResultadoDados { get; }
 
+// Crea el objeto.
     public EventoHardware(
         TipoEventoHardware tipo,
         string valor,

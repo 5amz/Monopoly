@@ -6,6 +6,7 @@ namespace Monopoly
         public NodoCarta Tail {get; private set;}
         public int Cantidad {get; private set;}
 
+// Crea el objeto.
         public MazoEventos()
         {
             Head = null;
@@ -13,6 +14,7 @@ namespace Monopoly
             Cantidad = 0;
         }
 
+// Ejecuta AgregarCarta.
         public void AgregarCarta(CartaEvento carta)
         {
             NodoCarta nuevoNodo = new NodoCarta(carta);
@@ -33,6 +35,7 @@ namespace Monopoly
             Cantidad++;
         }
 
+// Ejecuta ObtenerSiguienteCarta.
         public CartaEvento ObtenerSiguienteCarta()
         {
             if (Head == null)

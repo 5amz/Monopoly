@@ -7,6 +7,7 @@ namespace Monopoly
         public string Tipo {get; set;}
         public int Valor {get; set;}
 
+// Crea el objeto.
         public CartaEvento(int id, string descripcion, string tipo, int valor)
         {
             Id = id;

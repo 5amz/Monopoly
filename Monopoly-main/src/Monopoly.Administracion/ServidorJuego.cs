@@ -1,6 +1,6 @@
 namespace Monopoly.Administracion;
 
-/// <summary>Estados oficiales posibles de una partida.</summary>
+
 public enum EstadoPartida
 {
     EsperandoJugadores,
@@ -8,10 +8,10 @@ public enum EstadoPartida
     Finalizada
 }
 
-/// <summary>
-/// Estado oficial compartido por el servidor TCP y el coordinador. El protocolo
-/// y las sesiones viven en ServidorIntegrado; las operaciones económicas aquí.
-/// </summary>
+
+
+
+
 public sealed class ServidorJuego
 {
     private IValidadorTurnos _turnos;
@@ -23,6 +23,7 @@ public sealed class ServidorJuego
     public EstadoPartida Estado { get; private set; }
     public decimal SaldoInicialJugadores { get; }
 
+// Crea el objeto.
     public ServidorJuego(
         decimal saldoInicialJugadores,
         int maximoJugadores = 4,
@@ -40,7 +41,8 @@ public sealed class ServidorJuego
         ConfigurarModulos(turnos, accionesJuego, registroJugadoresJuego, eliminacionJugadoresJuego);
     }
 
-    /// <summary>El cliente nunca elige el saldo inicial.</summary>
+    
+// Ejecuta RegistrarJugador.
     public ResultadoOperacion RegistrarJugador(string id, string nombre)
     {
         if (Estado != EstadoPartida.EsperandoJugadores)
@@ -57,6 +59,7 @@ public sealed class ServidorJuego
         return ResultadoOperacion.Error($"No se pudo sincronizar el registro con el tablero: {registroTablero.Mensaje}");
     }
 
+// Ejecuta ConfigurarModulos.
     public void ConfigurarModulos(
         IValidadorTurnos turnos,
         IAccionesJuego accionesJuego,
@@ -69,6 +72,7 @@ public sealed class ServidorJuego
         _eliminacionJugadoresJuego = eliminacionJugadoresJuego;
     }
 
+// Ejecuta ActualizarPosicionDesdeTablero.
     public ResultadoOperacion ActualizarPosicionDesdeTablero(string idJugador, int posicion)
     {
         if (posicion < 0)
@@ -80,7 +84,8 @@ public sealed class ServidorJuego
         return ResultadoOperacion.Exito("Posición oficial actualizada.", jugador.Saldo, jugador.Saldo);
     }
 
-    /// <summary>Reconstruye el índice del jugador desde la única fuente de dueños: Tablero.</summary>
+    
+// Ejecuta SincronizarPropiedadesDesdeTablero.
     public ResultadoOperacion SincronizarPropiedadesDesdeTablero(string idJugador, global::Monopoly.Tablero tablero)
     {
         Jugador jugador = Banco.ConsultarJugador(idJugador);
@@ -96,7 +101,8 @@ public sealed class ServidorJuego
         return ResultadoOperacion.Exito("Índice de propiedades sincronizado.", jugador.Saldo, jugador.Saldo);
     }
 
-    /// <summary>Compra voluntaria: saldo insuficiente rechaza, nunca elimina.</summary>
+    
+// Ejecuta ProcesarCompraPropiedad.
     public ResultadoOperacion ProcesarCompraPropiedad(string idJugador, decimal precio, string nombrePropiedad, int numeroTurno)
     {
         if (Estado != EstadoPartida.EnCurso)
@@ -104,7 +110,8 @@ public sealed class ServidorJuego
         return Banco.Cobrar(idJugador, precio, $"Compra de propiedad: {nombrePropiedad}", TipoTransaccion.CompraPropiedad, numeroTurno);
     }
 
-    /// <summary>Los demás cobros son obligatorios; la insolvencia elimina al deudor.</summary>
+    
+// Ejecuta ProcesarCobro.
     public ResultadoOperacion ProcesarCobro(string idJugador, decimal monto, string motivo, TipoTransaccion tipo, int numeroTurno)
     {
         if (Estado != EstadoPartida.EnCurso)
@@ -113,6 +120,7 @@ public sealed class ServidorJuego
         return tipo == TipoTransaccion.CompraPropiedad ? cobro : AplicarEliminacionPorInsolvencia(idJugador, cobro);
     }
 
+// Ejecuta ProcesarAbono.
     public ResultadoOperacion ProcesarAbono(string idJugador, decimal monto, string motivo, TipoTransaccion tipo, int numeroTurno)
     {
         if (Estado != EstadoPartida.EnCurso)
@@ -120,9 +128,11 @@ public sealed class ServidorJuego
         return Banco.Abonar(idJugador, monto, motivo, tipo, numeroTurno);
     }
 
+// Ejecuta ProcesarPagoAlquiler.
     public ResultadoOperacion ProcesarPagoAlquiler(string idJugadorOrigen, string idJugadorDestino, decimal alquiler, string nombrePropiedad, int numeroTurno)
         => ProcesarTransferencia(idJugadorOrigen, idJugadorDestino, alquiler, $"Pago de alquiler: {nombrePropiedad}", TipoTransaccion.PagoAlquiler, numeroTurno);
 
+// Ejecuta ProcesarTransferencia.
     public ResultadoOperacion ProcesarTransferencia(string idJugadorOrigen, string idJugadorDestino, decimal monto, string motivo, TipoTransaccion tipo, int numeroTurno)
     {
         if (Estado != EstadoPartida.EnCurso)
@@ -131,15 +141,19 @@ public sealed class ServidorJuego
         return AplicarEliminacionPorInsolvencia(idJugadorOrigen, pago);
     }
 
+// Ejecuta ProcesarGananciaEvento.
     public ResultadoOperacion ProcesarGananciaEvento(string idJugador, decimal monto, string descripcion, int numeroTurno)
         => ProcesarAbono(idJugador, monto, descripcion, TipoTransaccion.GananciaPorEvento, numeroTurno);
 
+// Ejecuta ProcesarPerdidaEvento.
     public ResultadoOperacion ProcesarPerdidaEvento(string idJugador, decimal monto, string descripcion, int numeroTurno)
         => ProcesarCobro(idJugador, monto, descripcion, TipoTransaccion.PerdidaPorEvento, numeroTurno);
 
+// Ejecuta ProcesarPremioInicio.
     public ResultadoOperacion ProcesarPremioInicio(string idJugador, decimal monto, int numeroTurno)
         => ProcesarAbono(idJugador, monto, "Premio por pasar por inicio.", TipoTransaccion.PremioPorPasarInicio, numeroTurno);
 
+// Ejecuta MarcarPartidaIniciada.
     public void MarcarPartidaIniciada()
     {
         if (Estado != EstadoPartida.EsperandoJugadores)
@@ -151,11 +165,15 @@ public sealed class ServidorJuego
         Estado = EstadoPartida.EnCurso;
     }
 
+// Ejecuta MarcarPartidaFinalizada.
     public void MarcarPartidaFinalizada() => Estado = EstadoPartida.Finalizada;
+// Ejecuta ExportarTransacciones.
     public void ExportarTransacciones(string rutaArchivo) => Banco.Historial.ExportarATxt(rutaArchivo);
+// Ejecuta GenerarResumenEstado.
     public string GenerarResumenEstado() => $"Estado={Estado}#Jugadores={Banco.GenerarResumenJugadores()}";
 
-    /// <summary>Retiro idempotente. Una reconexión nunca llama este método ni reactiva jugadores.</summary>
+    
+// Ejecuta EliminarJugador.
     public ResultadoOperacion EliminarJugador(string idJugador, string motivo = "Abandono administrativo.")
     {
         Jugador jugador = Banco.ConsultarJugador(idJugador);
@@ -173,6 +191,7 @@ public sealed class ServidorJuego
         return ResultadoOperacion.Exito(motivo, jugador.Saldo, jugador.Saldo);
     }
 
+// Ejecuta AplicarEliminacionPorInsolvencia.
     private ResultadoOperacion AplicarEliminacionPorInsolvencia(string idJugador, ResultadoOperacion resultado)
     {
         if (resultado.FueExitosa || !resultado.FueRechazadaPorFondosInsuficientes)

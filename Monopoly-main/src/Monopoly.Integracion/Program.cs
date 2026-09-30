@@ -6,6 +6,7 @@ namespace Monopoly.Integracion;
 
 internal static class Program
 {
+// Ejecuta Main.
     private static int Main(string[] args)
     {
         Console.InputEncoding = new UTF8Encoding(false);
@@ -78,6 +79,7 @@ internal static class Program
         }
     }
 
+// Ejecuta Valor.
     private static string Valor(string[] args, ref int indice)
     {
         if (++indice >= args.Length) throw new ArgumentException("Falta el valor de una opción.");

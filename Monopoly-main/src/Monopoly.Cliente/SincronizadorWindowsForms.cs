@@ -6,13 +6,15 @@ namespace Monopoly.Cliente;
 public sealed class SincronizadorWindowsForms : ISincronizadorUI
 {
     private readonly Control destino;
-    // Guarda el control que recibe los cambios de pantalla.
+    
+// Crea el objeto.
     public SincronizadorWindowsForms(Control destino)
     {
         this.destino = destino;
     }
 
-    // Pasa la acción al hilo de la ventana.
+    
+// Ejecuta Ejecutar.
     public void Ejecutar(Action accion)
     {
         if (destino.IsDisposed || destino.Disposing || !destino.IsHandleCreated)

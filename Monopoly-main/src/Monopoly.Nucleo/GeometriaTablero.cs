@@ -4,7 +4,8 @@ using Monopoly.Protocolo;
 namespace Monopoly.Nucleo;
 public sealed class GeometriaTablero
 {
-    // Ubica las 24 casillas alrededor de una cuadrícula de 7 por 7.
+    
+// Ejecuta Calcular.
     public ListaSimple<Rectangulo> Calcular(double ancho, double alto)
     {
         ListaSimple<Rectangulo> lugares = new();

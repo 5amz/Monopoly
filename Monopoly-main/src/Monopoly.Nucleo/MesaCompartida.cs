@@ -5,13 +5,13 @@ using Monopoly.Protocolo;
 
 namespace Monopoly.Nucleo;
 
-/// <summary>
-/// Funde varios flujos IVistaJuego (uno por identidad TCP real conectada desde esta
-/// pantalla) en una sola vista física. El servidor sigue exigiendo turno e identidad
-/// ligada a cada socket; esta clase solo decide, del lado del cliente, cuál de las
-/// conexiones internas de ESTA pantalla corresponde al jugador que tiene el turno,
-/// cuando le toca a alguno de ellos.
-/// </summary>
+
+
+
+
+
+
+
 public sealed class VistaMesaCompartida
 {
     private readonly IVistaJuego destino;
@@ -20,6 +20,7 @@ public sealed class VistaMesaCompartida
 
     public int ActivoActual { get; private set; }
 
+// Crea el objeto.
     public VistaMesaCompartida(IVistaJuego destino, int cantidadJugadores)
     {
         if (cantidadJugadores < 1) throw new ArgumentOutOfRangeException(nameof(cantidadJugadores));
@@ -28,23 +29,28 @@ public sealed class VistaMesaCompartida
         for (int i = 0; i < cantidadJugadores; i++) ultimos[i] = new EstadoBotones();
     }
 
-    // Un solo flujo de escenas impide que una identidad atrasada reponga la carta anterior.
+    
+// Ejecuta MostrarEscena.
     public void MostrarEscena(int indice, EscenaTablero escena)
     {
         if (indice == 0) destino.MostrarEscena(escena);
     }
 
+// Ejecuta MostrarEfecto.
     public void MostrarEfecto(int indice, EfectoMultimedia efecto)
     {
         if (indice == 0) destino.MostrarEfecto(efecto);
     }
 
+// Ejecuta MostrarJugadores.
     public void MostrarJugadores(int indice, ListaSimple<JugadorVista> jugadores, string idEnTurno) =>
         destino.MostrarJugadores(jugadores, idEnTurno);
 
+// Ejecuta MostrarDados.
     public void MostrarDados(int indice, int dado1, int dado2, int total, bool esHardware) =>
         destino.MostrarDados(dado1, dado2, total, esHardware);
 
+// Ejecuta MostrarEstadoBotones.
     public void MostrarEstadoBotones(int indice, EstadoBotones estado)
     {
         ultimos[indice] = estado;
@@ -56,79 +62,100 @@ public sealed class VistaMesaCompartida
         destino.MostrarEstadoBotones(ultimos[ActivoActual]);
     }
 
+// Ejecuta AgregarLineaLog.
     public void AgregarLineaLog(int indice, string linea) => destino.AgregarLineaLog(linea);
 
+// Ejecuta MostrarCarta.
     public void MostrarCarta(int indice, string cancion, string texto, string efecto, int valor) =>
         destino.MostrarCarta(cancion, texto, efecto, valor);
 
+// Ejecuta MostrarError.
     public void MostrarError(int indice, string codigo, string mensaje) => destino.MostrarError(codigo, mensaje);
 
+// Ejecuta MostrarFinPartida.
     public void MostrarFinPartida(int indice, ResultadoPartida resultado)
     {
-        // Todas las conexiones de esta pantalla reciben el mismo EVT_FIN_PARTIDA; mostrarlo una sola vez.
+        
         if (finMostrado) return;
         finMostrado = true;
         destino.MostrarFinPartida(resultado);
     }
 
+// Ejecuta MostrarEstadoConexion.
     public void MostrarEstadoConexion(int indice, EstadoConexion estado) => destino.MostrarEstadoConexion(estado);
 
+// Ejecuta MostrarPagoPendiente.
     public void MostrarPagoPendiente(int indice, string idJugador, string descripcion, bool tarjetaRechazada) =>
         destino.MostrarPagoPendiente(idJugador, descripcion, tarjetaRechazada);
 
+// Ejecuta OcultarPagoPendiente.
     public void OcultarPagoPendiente(int indice) => destino.OcultarPagoPendiente();
 }
 
-/// <summary>Adaptador liviano por identidad: reenvía cada llamada de IVistaJuego a la vista compartida con su índice.</summary>
+
 public sealed class CanalVistaMesa : IVistaJuego
 {
     private readonly int indice;
     private readonly VistaMesaCompartida compartida;
 
+// Crea el objeto.
     public CanalVistaMesa(int indice, VistaMesaCompartida compartida)
     {
         this.indice = indice;
         this.compartida = compartida;
     }
 
+// Ejecuta MostrarEfecto.
     public void MostrarEfecto(EfectoMultimedia efecto) => compartida.MostrarEfecto(indice, efecto);
+// Ejecuta MostrarEscena.
     public void MostrarEscena(EscenaTablero escena) => compartida.MostrarEscena(indice, escena);
+// Ejecuta MostrarJugadores.
     public void MostrarJugadores(ListaSimple<JugadorVista> jugadores, string idEnTurno) => compartida.MostrarJugadores(indice, jugadores, idEnTurno);
+// Ejecuta MostrarDados.
     public void MostrarDados(int dado1, int dado2, int total, bool esHardware) => compartida.MostrarDados(indice, dado1, dado2, total, esHardware);
+// Ejecuta MostrarEstadoBotones.
     public void MostrarEstadoBotones(EstadoBotones estado) => compartida.MostrarEstadoBotones(indice, estado);
+// Ejecuta AgregarLineaLog.
     public void AgregarLineaLog(string linea) => compartida.AgregarLineaLog(indice, linea);
+// Ejecuta MostrarCarta.
     public void MostrarCarta(string cancion, string texto, string efecto, int valor) => compartida.MostrarCarta(indice, cancion, texto, efecto, valor);
+// Ejecuta MostrarError.
     public void MostrarError(string codigo, string mensaje) => compartida.MostrarError(indice, codigo, mensaje);
+// Ejecuta MostrarFinPartida.
     public void MostrarFinPartida(ResultadoPartida resultado) => compartida.MostrarFinPartida(indice, resultado);
+// Ejecuta MostrarEstadoConexion.
     public void MostrarEstadoConexion(EstadoConexion estado) => compartida.MostrarEstadoConexion(indice, estado);
+// Ejecuta MostrarPagoPendiente.
     public void MostrarPagoPendiente(string idJugador, string descripcion, bool tarjetaRechazada) =>
         compartida.MostrarPagoPendiente(indice, idJugador, descripcion, tarjetaRechazada);
+// Ejecuta OcultarPagoPendiente.
     public void OcultarPagoPendiente() => compartida.OcultarPagoPendiente(indice);
 }
 
-/// <summary>
-/// Enruta cada acción de esta pantalla hacia la conexión real (de esta misma pantalla)
-/// del jugador en turno. El servidor no sabe que existe: sigue viendo sesiones TCP
-/// normales con su propia identidad, validadas exactamente igual que en el modo de una
-/// ventana por jugador. Cuando el turno le toca a un jugador de OTRA pantalla (otra
-/// computadora), ningún botón de esta se habilita: solo actúa quien está frente a esa
-/// pantalla, igual que en la mesa física.
-/// </summary>
+
+
+
+
+
+
+
+
 public sealed class ControladorMesa : IControladorJuego
 {
     private readonly ControladorJuego[] controladores;
     private readonly VistaMesaCompartida vista;
     private readonly MotorAnimacion motor;
 
+// Crea el objeto.
     public ControladorMesa(ControladorJuego[] controladores, VistaMesaCompartida vista, MotorAnimacion motor)
     {
         if (controladores.Length < 1) throw new ArgumentException("La pantalla necesita al menos una identidad.", nameof(controladores));
         this.controladores = controladores;
         this.vista = vista;
         this.motor = motor;
-        // El servidor difunde cada recorrido a todas las identidades. Como esta mesa
-        // comparte un solo motor, solo una de ellas debe encolarlo, sea de quien sea
-        // el turno. Cada pantalla tiene su propio receptor y su propia animación.
+        
+        
+        
         for (int i = 0; i < controladores.Length; i++)
             controladores[i].EncolaMovimientos = i == 0;
     }
@@ -138,32 +165,45 @@ public sealed class ControladorMesa : IControladorJuego
 
     public MotorAnimacion Motor => motor;
     public EstadoLocal Estado => Lectura.Estado;
+// Ejecuta VincularHistorial.
     public void VincularHistorial(IVistaTransacciones historial) => Lectura.VincularHistorial(historial);
+// Ejecuta CambiarTamano.
     public void CambiarTamano(double anchoDisponible, double altoDisponible)
     {
         foreach (var c in controladores) c.CambiarTamano(anchoDisponible, altoDisponible);
     }
 
+// Ejecuta SolicitarTirarDados.
     public void SolicitarTirarDados() => Activo.SolicitarTirarDados();
+// Ejecuta SolicitarComprar.
     public void SolicitarComprar() => Activo.SolicitarComprar();
+// Ejecuta RechazarCompra.
     public void RechazarCompra() => Activo.RechazarCompra();
+// Ejecuta TerminarTurno.
     public void TerminarTurno() => Activo.TerminarTurno();
+// Ejecuta SimularTarjetaRemota.
     public void SimularTarjetaRemota(string uid) => Lectura.SimularTarjetaRemota(uid);
+// Ejecuta AbrirHistorial.
     public void AbrirHistorial() => Lectura.AbrirHistorial();
+// Ejecuta FiltrarHistorial.
     public void FiltrarHistorial(string jugador, string tipo) => Lectura.FiltrarHistorial(jugador, tipo);
+// Ejecuta HistorialAnterior.
     public void HistorialAnterior() => Lectura.HistorialAnterior();
+// Ejecuta HistorialSiguiente.
     public void HistorialSiguiente() => Lectura.HistorialSiguiente();
+// Ejecuta HistorialPrimero.
     public void HistorialPrimero() => Lectura.HistorialPrimero();
+// Ejecuta HistorialUltimo.
     public void HistorialUltimo() => Lectura.HistorialUltimo();
 }
 
-/// <summary>
-/// Orquesta el registro de las identidades que le tocan a ESTA pantalla: puede alojar el
-/// servidor local (una pantalla con las cuatro identidades, o la primera de un montaje en
-/// dos computadoras) o unirse a un servidor ya alojado por otra pantalla (el resto de las
-/// identidades, típicamente desde otra computadora en la misma red). Los ControladorJuego
-/// resultantes se presentan en una sola vista (VistaMesaCompartida) sobre la misma FormJuego.
-/// </summary>
+
+
+
+
+
+
+
 public sealed class ControladorMesaConexion
 {
     private readonly AnfitrionServidor anfitrion;
@@ -189,6 +229,7 @@ public sealed class ControladorMesaConexion
 
     public event Action? PartidaDisponible;
 
+// Crea el objeto.
     public ControladorMesaConexion(AnfitrionServidor anfitrion, IVistaConexion vistaConexion, IVistaJuego vistaJuego, ISincronizadorUI ui, MotorAnimacion motor)
     {
         this.anfitrion = anfitrion;
@@ -204,7 +245,8 @@ public sealed class ControladorMesaConexion
         };
     }
 
-    // Comprueba el puerto y guarda los nombres de esta pantalla; comparte validación entre alojar y unirse.
+    
+// Ejecuta PrepararNombresYPuerto.
     private bool PrepararNombresYPuerto(string[] nombresPantalla, string puerto, out int numero)
     {
         numero = 0;
@@ -251,7 +293,8 @@ public sealed class ControladorMesaConexion
         return true;
     }
 
-    // Aloja el servidor local y registra las identidades de esta pantalla (el resto se une por red).
+    
+// Ejecuta AlojarMesa.
     public void AlojarMesa(string[] nombresPantalla, string puerto, bool usarPico, string puertoSerial)
     {
         if (cerrando || iniciando) return;
@@ -269,7 +312,8 @@ public sealed class ControladorMesaConexion
         anfitrion.Iniciar(numero);
     }
 
-    // Se une a un servidor ya alojado por otra pantalla (otra computadora) y registra las identidades propias.
+    
+// Ejecuta UnirseMesa.
     public void UnirseMesa(string[] nombresPantalla, string ip, string puerto)
     {
         if (cerrando || iniciando) return;
@@ -292,6 +336,7 @@ public sealed class ControladorMesaConexion
         RegistrarIdentidades(direccion.ToString(), esAnfitrionPantalla: false);
     }
 
+// Ejecuta RegistrarIdentidades.
     private void RegistrarIdentidades(string ip, bool esAnfitrionPantalla)
     {
         if (cerrando)
@@ -328,15 +373,15 @@ public sealed class ControladorMesaConexion
         controladores = nuevosControladores;
         ControladorJuego = new ControladorMesa(nuevosControladores, compartida, motor);
 
-        // La primera identidad de esta pantalla recibe la misma difusión oficial que las
-        // demás; basta con escucharla para saber cuándo la sala y la partida están listas.
+        
+        
         nuevosControladores[0].SalaActualizada += texto => ui.Ejecutar(() => vistaConexion.MostrarSala(texto));
         nuevosControladores[0].PartidaDisponible += () =>
         {
-            // Vincular FormJuego inicia su Timer de Windows Forms: debe ocurrir en el
-            // hilo con el bucle de mensajes, nunca en el lector TCP. Sin ese reloj las
-            // animaciones quedan pendientes y bloquean los botones hasta un resync.
-            // La vinculación y la apertura viajan juntas y en este orden.
+            
+            
+            
+            
             ui.Ejecutar(() =>
             {
                 if (cerrando) return;
@@ -345,12 +390,13 @@ public sealed class ControladorMesaConexion
             });
         };
 
-        // Esperar cada OK evita registros parciales desordenados y permite corregir
-        // un rechazo sin volver a conectar las identidades ya aceptadas.
+        
+        
         nuevosControladores[0].Preparar(nombres[0], esAnfitrionPantalla);
         nuevasConexiones[0].Conectar(ip, puertoActual);
     }
 
+// Ejecuta ContinuarRegistro.
     private void ContinuarRegistro(int indice)
     {
         if (cerrando || indice != siguienteRegistro || conexiones is null) return;
@@ -367,6 +413,7 @@ public sealed class ControladorMesaConexion
         AbrirSiLista();
     }
 
+// Ejecuta AbrirSiLista.
     private void AbrirSiLista()
     {
         if (cerrando || juegoAbierto || !partidaDisponible || siguienteRegistro != nombres.Length) return;
@@ -375,6 +422,7 @@ public sealed class ControladorMesaConexion
         vistaConexion.AbrirJuego();
     }
 
+// Ejecuta ReintentarRegistro.
     private void ReintentarRegistro(string[] nuevosNombres, string ip, string puerto, bool alojar)
     {
         if (!esperandoCorreccion || controladores is null) return;
@@ -390,7 +438,8 @@ public sealed class ControladorMesaConexion
         controladores[siguienteRegistro].ReintentarRegistro(nombres[siguienteRegistro]);
     }
 
-    // Pide confirmación (si aplica) y cierra las conexiones de esta pantalla y, si corresponde, el servidor local.
+    
+// Ejecuta SolicitarCierre.
     public void SolicitarCierre()
     {
         if (cerrando) return;
@@ -405,6 +454,7 @@ public sealed class ControladorMesaConexion
         }
     }
 
+// Ejecuta ConfirmarCierre.
     private void ConfirmarCierre(bool confirmar)
     {
         if (!confirmar || cerrando) return;

@@ -6,6 +6,7 @@ namespace Monopoly
         public NodoCasilla Prev {get; set;}
         public NodoCasilla Next {get; set;}
 
+// Crea el objeto.
         public NodoCasilla(Casilla casilla)
         {
             Casilla = casilla;

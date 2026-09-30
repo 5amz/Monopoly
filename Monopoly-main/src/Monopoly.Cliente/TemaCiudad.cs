@@ -12,7 +12,8 @@ internal static class TemaCiudad
     private static readonly Font FuenteBoton = new("Segoe UI Semibold", 10, FontStyle.Bold);
     private static readonly Font FuenteCabecera = new("Segoe UI Semibold", 11, FontStyle.Bold);
 
-    // Aplica los colores y las fuentes de la interfaz.
+    
+// Ejecuta Aplicar.
     internal static void Aplicar(Control control, bool monocromo = false)
     {
         control.ForeColor = monocromo ? Color.Black : Texto;
@@ -36,7 +37,8 @@ internal static class TemaCiudad
         foreach (Control hijo in control.Controls) Aplicar(hijo, monocromo);
     }
 
-    // Resalta un botón de acción principal.
+    
+// Ejecuta AccionPrincipal.
     internal static void AccionPrincipal(Button boton)
     {
         boton.BackColor = Acento;
@@ -46,7 +48,8 @@ internal static class TemaCiudad
         boton.FlatAppearance.MouseDownBackColor = Color.FromArgb(157, 31, 43);
     }
 
-    // Aplica el estilo de los títulos.
+    
+// Ejecuta Cabecera.
     internal static void Cabecera(Label etiqueta)
     {
         etiqueta.Font = FuenteCabecera;

@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
@@ -9,7 +9,7 @@ using Monopoly.Protocolo;
 
 namespace Monopoly.Integracion;
 
-/// <summary>Único servidor de producción. Serializa las solicitudes y delega todas las reglas al coordinador.</summary>
+
 public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
 {
     private readonly object bloqueo = new();
@@ -45,6 +45,7 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
     public event Action ServidorListo;
     public event Action<string> ServidorFallo;
 
+// Crea el objeto.
     public ServidorIntegrado(ConfiguracionPartida opciones = null, IProveedorDados proveedorDados = null,
         RegistroTarjetasRFID registroTarjetas = null)
     {
@@ -56,12 +57,13 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         IProveedorDados origen = proveedorDados ?? (configuracion.UsarHardware ? entradaSerial : new ProveedorDadosSimulado());
         dados = new ProveedorDadosObservado(origen, entradaSerial);
         coordinador = new CoordinadorPartidaTablero(juego, tablero, turnos, proveedorDados: dados,
-            mazoEventos: configuracion.CrearMazo(), requerirRfidParaPagos: true);
+            mazoEventos: configuracion.CrearMazo());
         juego.ConfigurarModulos(coordinador, coordinador, coordinador, coordinador);
         coordinador.CartaAplicada += (idJugador, carta) => cartasAplicadas.Agregar(Mensaje.Crear("EVT_CARTA")
             .Con("idJugador", idJugador).Con("texto", Limpiar(carta.Descripcion)).Con("efecto", carta.Tipo).Con("valor", carta.Valor));
     }
 
+// Ejecuta Iniciar.
     public void Iniciar(int puerto)
     {
         lock (bloqueo)
@@ -98,6 +100,7 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         ServidorListo?.Invoke();
     }
 
+// Ejecuta Aceptar.
     private void Aceptar()
     {
         try
@@ -117,6 +120,7 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         catch (Exception e) when (e is SocketException or ObjectDisposedException or InvalidOperationException) { }
     }
 
+// Ejecuta Procesar.
     private void Procesar(Sesion sesion, Mensaje mensaje)
     {
         lock (bloqueo)
@@ -138,7 +142,7 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
             }
             if (mensaje.Tipo == "CONSULTAR_ESTADO") { Contexto(sesion); return; }
             if (mensaje.Tipo == "CONSULTAR_TRANSACCIONES") { ConsultarHistorial(sesion, mensaje); return; }
-            // Cerrar la conexión conserva el jugador; el abandono es una acción administrativa local explícita.
+            
             if (mensaje.Tipo == "DESCONECTAR") { sesion.Cerrar(); return; }
             if (!iniciada)
             {
@@ -150,10 +154,10 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
                 Error(sesion, mensaje.Tipo, "ACCION_INVALIDA", "La partida termino o el jugador fue eliminado.");
                 return;
             }
-            // Cualquier pantalla puede pedir esto, sin importar el turno: es la única manera de
-            // simular RFID en modo simulador cuando esa pantalla no aloja el servidor (por
-            // ejemplo, el montaje en dos computadoras, donde el hardware/simulador real vive
-            // solo donde corre ServidorIntegrado).
+            
+            
+            
+            
             if (mensaje.Tipo == "SIMULAR_RFID") { SimularRfid(sesion, mensaje); return; }
             if (Actual != jugador.Id)
             {
@@ -188,6 +192,7 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         }
     }
 
+// Ejecuta Conectar.
     private void Conectar(Sesion sesion, Mensaje mensaje)
     {
         string nombre = mensaje.Obtener("nombre");
@@ -247,9 +252,11 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         PublicarEstado();
     }
 
+// Ejecuta Inicio.
     private Mensaje Inicio() => Mensaje.Crear("EVT_PARTIDA_INICIADA").Con("turno", Turno)
         .Con("idJugadorActual", Actual).Con("maxTurnos", configuracion.MaxTurnos);
 
+// Ejecuta Contexto.
     private void Contexto(Sesion sesion)
     {
         if (iniciada && !finalizada)
@@ -266,6 +273,7 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         sesion.Enviar(Snapshot());
     }
 
+// Ejecuta TirarDados.
     private void TirarDados(JugadorConectado jugador)
     {
         cartasAplicadas.Limpiar();
@@ -291,6 +299,7 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         AplicarAccion(jugador.Sesion, "TIRAR_DADOS", resultado);
     }
 
+// Ejecuta AplicarAccion.
     private void AplicarAccion(Sesion sesion, string accion, ResultadoAccionJuego resultado)
     {
         if (!resultado.FueExitosa)
@@ -298,9 +307,11 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         PublicarCambios();
     }
 
+// Ejecuta PagoPendiente.
     private Mensaje PagoPendiente() => Mensaje.Crear("EVT_PAGO_PENDIENTE")
         .Con("idJugador", coordinador.IdJugadorPagoPendiente).Con("descripcion", Limpiar(coordinador.DescripcionPagoPendiente));
 
+// Ejecuta PublicarCambios.
     private void PublicarCambios()
     {
         juego.Banco.Historial.RecorrerAntiguaAReciente(t =>
@@ -342,6 +353,7 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         PublicarEstado();
     }
 
+// Ejecuta Finalizar.
     private void Finalizar(string motivo)
     {
         if (finalizada) return;
@@ -361,7 +373,8 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         }
     }
 
-    /// <summary>Únicamente el administrador local puede retirar explícitamente a un jugador.</summary>
+    
+// Ejecuta AbandonarJugador.
     public bool AbandonarJugador(string idJugador)
     {
         lock (bloqueo)
@@ -373,7 +386,8 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         }
     }
 
-    /// <summary>Exportación local; el protocolo TCP no permite escribir ni alterar el historial.</summary>
+    
+// Ejecuta ExportarTransacciones.
     public string ExportarTransacciones(string ruta = null)
     {
         lock (bloqueo)
@@ -386,11 +400,10 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         }
     }
 
-    public Mensaje ConsultarEstadoOficial() { lock (bloqueo) return Snapshot(); }
+    
 
-    /// <summary>Solo en modo simulador: procesa la tarjeta exactamente como si llegara por el
-    /// puerto serial del servidor. Permite probar sin hardware cuando esta pantalla no aloja
-    /// el servidor (montaje en varias computadoras); la fuente real sigue siendo una sola.</summary>
+
+// Ejecuta SimularRfid.
     private void SimularRfid(Sesion sesion, Mensaje mensaje)
     {
         if (configuracion.UsarHardware)
@@ -406,7 +419,8 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         ProcesarEventoHardware(evento);
     }
 
-    /// <summary>Prueba local: inyecta exclusivamente el mensaje serial, con las mismas reglas y validaciones.</summary>
+    
+// Ejecuta RecibirLineaSerial.
     public bool RecibirLineaSerial(string linea)
     {
         lock (bloqueo)
@@ -416,11 +430,13 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         }
     }
 
+// Ejecuta RecibirEventoHardware.
     private void RecibirEventoHardware(EventoHardware evento)
     {
         lock (bloqueo) ProcesarEventoHardware(evento);
     }
 
+// Ejecuta ProcesarEventoHardware.
     private bool ProcesarEventoHardware(EventoHardware evento)
     {
         if (!activo || !iniciada || finalizada) return false;
@@ -439,7 +455,7 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
                 PublicarCambios();
                 return resultado.FueExitosa;
             }
-            // Sin pago pendiente, la tarjeta correcta autoriza la siguiente tirada del jugador en turno.
+            
             if (coordinador.DadosUsadosEnTurno) return false;
             autorizadoRFID = Actual;
             return true;
@@ -453,8 +469,7 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         return false;
     }
 
-    public void RecibirHardware(string linea) => RecibirLineaSerial(linea);
-
+// Ejecuta FalloHardware.
     private void FalloHardware(string texto)
     {
         lock (bloqueo)
@@ -465,8 +480,10 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         }
     }
 
+// Ejecuta TipoCasilla.
     private static string TipoCasilla(Casilla casilla) => casilla is Propiedad ? "PROPIEDAD" : casilla is CasillaEvento ? "EVENTO" : "ESPECIAL";
 
+// Ejecuta Casilla.
     private Mensaje Casilla(JugadorConectado jugador)
     {
         Casilla casilla = tablero.ObtenerCasilla(jugador.Oficial.PosicionActual);
@@ -477,6 +494,7 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
             .Con("accionDisponible", jugador.Oficial.EstaActivo && Actual == jugador.Id && coordinador.HayCompraPendiente && !coordinador.HayPagoPendiente ? "COMPRAR" : "NINGUNA");
     }
 
+// Ejecuta Snapshot.
     private Mensaje Snapshot()
     {
         var datosJugadores = new StringBuilder();
@@ -518,6 +536,7 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
             .Con("modo", configuracion.UsarHardware ? "HARDWARE" : "SIMULADOR").Con("revision", revision);
     }
 
+// Ejecuta TipoTransaccionCliente.
     private static string TipoTransaccionCliente(TipoTransaccion tipo) => tipo switch
     {
         TipoTransaccion.CompraPropiedad => "COMPRA_PROPIEDAD",
@@ -528,11 +547,13 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         _ => tipo.ToString()
     };
 
+// Ejecuta EventoTransaccion.
     private static Mensaje EventoTransaccion(Transaccion transaccion) => Mensaje.Crear("EVT_TRANSACCION")
         .Con("id", checked((int)transaccion.Id)).Con("turno", transaccion.NumeroTurno).Con("tipo", TipoTransaccionCliente(transaccion.Tipo))
         .Con("origen", transaccion.IdJugadorOrigen).Con("destino", transaccion.IdJugadorDestino).Con("monto", transaccion.Monto)
         .Con("descripcion", Limpiar(transaccion.Descripcion));
 
+// Ejecuta ConsultarHistorial.
     private void ConsultarHistorial(Sesion sesion, Mensaje mensaje)
     {
         var texto = new StringBuilder();
@@ -550,16 +571,21 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         sesion.Enviar(Mensaje.Crear("OK").Con("accion", "CONSULTAR_TRANSACCIONES").Con("cantidad", cantidad).Con("transacciones", texto.ToString()));
     }
 
+// Ejecuta Limpiar.
     private static string Limpiar(string texto) => ConstructorMensajes.TextoSeguro(texto ?? "").Trim();
+// Ejecuta Error.
     private static void Error(Sesion sesion, string accion, string codigo, string texto) => sesion?.Enviar(ConstructorMensajes.Error(accion, codigo, Limpiar(texto)));
+// Ejecuta PublicarEstado.
     private void PublicarEstado() { revision++; Difundir(Snapshot()); }
 
+// Ejecuta Difundir.
     private void Difundir(Mensaje mensaje)
     {
         AnalizadorMensajes.Validar(mensaje);
         foreach (var jugador in jugadores) jugador.Sesion?.Enviar(mensaje);
     }
 
+// Ejecuta Desconectada.
     private void Desconectada(Sesion sesion)
     {
         lock (bloqueo)
@@ -573,6 +599,7 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         }
     }
 
+// Ejecuta Detener.
     public void Detener()
     {
         var pendientes = new ListaSimple<Sesion>();
@@ -594,5 +621,6 @@ public sealed class ServidorIntegrado : IServidorEmbebido, IDisposable
         foreach (var sesion in pendientes) sesion.EsperarCierre();
     }
 
+// Ejecuta Dispose.
     public void Dispose() => Detener();
 }

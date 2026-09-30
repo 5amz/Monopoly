@@ -5,8 +5,9 @@ namespace Monopoly.Nucleo;
 public static class PersonalizacionCiudad
 {
     public const string Titulo = "Ciudad de Canciones";
-    // Los mensajes conservan importes y acciones oficiales, pero presentan las
-    // propiedades con el mismo título que el tablero (identificado por id).
+    
+    
+// Ejecuta TextoConCanciones.
     public static string TextoConCanciones(string texto, ListaCircularDoble<CasillaVista> casillas)
     {
         foreach (var casilla in casillas)
@@ -15,7 +16,8 @@ public static class PersonalizacionCiudad
         return texto;
     }
 
-    // Devuelve el titulo visual sin cambiar el nombre oficial del tablero.
+    
+// Ejecuta Cancion.
     public static string Cancion(int id)
     {
         return id switch
@@ -42,7 +44,8 @@ public static class PersonalizacionCiudad
         };
     }
 
-    // Devuelve el artista que aparece en el detalle visual de una casilla.
+    
+// Ejecuta Artista.
     public static string Artista(int id)
     {
         return id switch
@@ -69,7 +72,8 @@ public static class PersonalizacionCiudad
         };
     }
 
-    // Asocia una cancion al efecto recibido sin decidir la regla de la carta.
+    
+// Ejecuta CancionEvento.
     public static string CancionEvento(string efecto)
     {
         return efecto switch
@@ -84,7 +88,8 @@ public static class PersonalizacionCiudad
         };
     }
 
-    // Devuelve el nombre de la imagen de una carta.
+    
+// Ejecuta ImagenEvento.
     public static string ImagenEvento(string efecto)
     {
         return efecto switch

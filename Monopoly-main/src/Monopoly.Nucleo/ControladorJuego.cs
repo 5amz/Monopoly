@@ -52,8 +52,8 @@ public sealed class ControladorJuego : IControladorJuego
     private bool ultimoHardware;
     public MotorAnimacion Motor { get; }
     public EstadoLocal Estado => estado;
-    // La mesa elige un único receptor de recorridos antes de conectar sus identidades.
-    // Los otros controladores consultan el mismo motor para habilitar sus botones.
+    
+    
     internal bool EncolaMovimientos { get; set; } = true;
 
     public event Action<string>? SalaActualizada;
@@ -71,7 +71,8 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Conecta la red, las animaciones y la vista con el controlador.
+    
+// Crea el objeto.
     public ControladorJuego(ConexionServidor red, IVistaJuego vista, ISincronizadorUI ui, MotorAnimacion motor)
     {
         this.red = red;
@@ -84,7 +85,8 @@ public sealed class ControladorJuego : IControladorJuego
         motor.Actualizado += ActualizarAnimacion;
     }
 
-    // Limpia los datos para entrar a una partida.
+    
+// Ejecuta Preparar.
     public void Preparar(string nombreJugador, bool esAnfitrion)
     {
         lock (bloqueo)
@@ -104,13 +106,15 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Guarda la vista que mostrará las transacciones.
+    
+// Ejecuta VincularHistorial.
     public void VincularHistorial(IVistaTransacciones historial)
     {
         vistaHistorial = historial;
     }
 
-    // Pide registrar al jugador cuando se abre la conexión.
+    
+// Ejecuta Establecida.
     private void Establecida()
     {
         lock (bloqueo)
@@ -128,7 +132,8 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Desactiva las acciones y muestra el problema de conexión.
+    
+// Ejecuta Perdida.
     private void Perdida(string motivo)
     {
         lock (bloqueo)
@@ -143,7 +148,8 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Revisa el tipo de mensaje y actualiza lo que muestra el cliente.
+    
+// Ejecuta Recibir.
     private void Recibir(Mensaje m)
     {
         lock (bloqueo)
@@ -177,9 +183,9 @@ public sealed class ControladorJuego : IControladorJuego
                         esperando = false;
                         if (m.Obtener("accion") == "CONECTAR" && id.Length == 0 && RegistroRechazado is not null)
                         {
-                            // La mesa permite corregir el nombre en esta misma conexión.
-                            // Una identidad rechazada no debe pintar su estado vacío sobre
-                            // el tablero de los jugadores que sí están registrados.
+                            
+                            
+                            
                             recuperando = true;
                             detalleConexion = m.Obtener("mensaje");
                             RegistroRechazado.Invoke(detalleConexion);
@@ -211,10 +217,10 @@ public sealed class ControladorJuego : IControladorJuego
                         dados = oferta = false;
                         idOferta = 0;
                         identidadConfirmadaRFID = false;
-                        // Limpia los dados en pantalla al pasar el turno; el próximo jugador
-                        // todavía no tiró y no debe ver la tirada anterior. Hay que limpiar el
-                        // motor también: si no, el próximo tick de animación redibujaría la
-                        // tirada vieja porque Motor.TotalDados seguiría distinto de cero.
+                        
+                        
+                        
+                        
                         Motor.Dados(0, 0, false, 0);
                         ultimoD1 = ultimoD2 = ultimoTotal = 0;
                         ultimoHardware = false;
@@ -252,17 +258,17 @@ public sealed class ControladorJuego : IControladorJuego
 
                         break;
                     case "EVT_RFID":
-                        // Un pago pendiente sin cambio de revision (el servidor no cobra ni
-                        // reescribe el estado con un UID incorrecto): esta es la única señal
-                        // de que la tarjeta acercada fue rechazada.
+                        
+                        
+                        
                         if (pagoPendiente)
                         {
                             tarjetaRechazada = m.Obtener("estado") == "INVALIDO";
                         }
                         else if (!dados)
                         {
-                            // Fuera de un pago pendiente, la tarjeta correcta autoriza la
-                            // siguiente tirada; el botón queda desactivado hasta entonces.
+                            
+                            
                             identidadConfirmadaRFID = m.Obtener("estado") == "VALIDO";
                         }
 
@@ -273,7 +279,7 @@ public sealed class ControladorJuego : IControladorJuego
                         turnoCarta = turnoVisual;
                         jugadorCarta = m.Obtener("idJugador");
                         cartaVisible = new CartaVisible(cancion, m.Obtener("texto"), efecto, m.Entero("valor"));
-                        // El contexto recuperado restaura la carta, pero no repite su música.
+                        
                         string pistaCarta = PersonalizacionCiudad.ImagenEvento(efecto);
                         if (!recuperando && pistaCarta.Length > 0)
                             Efecto(new EfectoMultimedia(pistaCarta, jugadorCarta, Carta: cartaVisible));
@@ -366,28 +372,31 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
+// Ejecuta Efecto.
     private void Efecto(EfectoMultimedia efecto) => EjecutarVista(() => vista.MostrarEfecto(efecto));
 
-    // Agrega la hora y el mensaje al registro.
+    
+// Ejecuta Log.
     private void Log(string linea)
     {
         linea = PersonalizacionCiudad.TextoConCanciones(linea, estado.Casillas);
         estado.RegistrarLog(DateTime.Now.ToString("HH:mm:ss", CultureInfo.InvariantCulture) + " " + linea);
         string texto = estado.ObtenerLog();
-        // Sin EjecutarVista a propósito: su manejo de fallos termina llamando aquí mismo, y
-        // envolverlo hubiera arriesgado una recursión si el propio registro fallara.
+        
+        
         ui.Ejecutar(() => vista.AgregarLineaLog(texto));
     }
 
-    // Ejecuta una actualización de la vista sin dejar que un fallo puntual (un caso real no
-    // cubierto por esta vista, o una condición de carrera de la interfaz) se pierda en silencio
-    // ni bloquee las demás actualizaciones. Antes, todas las llamadas de una misma publicación
-    // viajaban juntas en un solo ui.Ejecutar: si una fallaba, ni esa ni las que la seguían en el
-    // mismo bloque llegaban a pintarse, y con BeginInvoke sin EndInvoke la excepción desaparecía
-    // sin ningún aviso — la pantalla podía quedar "congelada" para siempre sin ningún rastro.
-    // Ahora cada campo se publica por separado: un fallo solo afecta a ese campo, se reporta en
-    // el propio registro en pantalla, y la siguiente publicación (con cualquier mensaje nuevo del
-    // servidor) lo vuelve a intentar de cero.
+    
+    
+    
+    
+    
+    
+    
+    
+    
+// Ejecuta EjecutarVista.
     private void EjecutarVista(Action accion)
     {
         ui.Ejecutar(() =>
@@ -403,14 +412,15 @@ public sealed class ControladorJuego : IControladorJuego
         });
     }
 
-    // Prepara los datos y botones que debe mostrar la vista.
+    
+// Ejecuta Publicar.
     private void Publicar()
     {
         bool activo = estado.Jugadores.Buscar(j => j.Id == id && j.Activo, out _);
         bool habilitado = conectado && !actualizando && !recuperando && iniciada && !finalizada && !esperando && !pagoPendiente && !Motor.HayPendientes && activo && estado.IdJugadorActual == id;
         bool esperandoIdentidad = habilitado && !dados && !identidadConfirmadaRFID;
-        // Tirar dados exige, en orden: tarjeta RFID del jugador en turno, luego el botón/pulsador.
-        // Si no está esperando esa respuesta (identidad aún sin confirmar), el botón queda desactivado.
+        
+        
         var nuevos = new EstadoBotones(habilitado && !dados && identidadConfirmadaRFID, habilitado && oferta, habilitado && oferta, habilitado && dados && !oferta, conectado && !recuperando);
         botones = nuevos;
         var jugadores = estado.Jugadores;
@@ -421,7 +431,7 @@ public sealed class ControladorJuego : IControladorJuego
         string idPago = idPagoPendiente;
         string descripcion = descripcionPago;
         bool rechazada = tarjetaRechazada;
-        // Cada campo por separado: si uno falla, los demás igual se actualizan.
+        
         EjecutarVista(() => vista.MostrarJugadores(jugadores, turno));
         EjecutarVista(() => vista.MostrarEstadoBotones(nuevos));
         EjecutarVista(() => vista.MostrarEstadoConexion(conexion));
@@ -432,14 +442,16 @@ public sealed class ControladorJuego : IControladorJuego
         ultimaCola = Motor.HayPendientes;
     }
 
-    // Pide al calculador los elementos del tablero y los entrega a la vista.
+    
+// Ejecuta Escena.
     private void Escena()
     {
         var escena = calculador.Calcular(estado, Motor, ancho, alto, Motor.HayPendientes ? null : cartaVisible);
         EjecutarVista(() => vista.MostrarEscena(escena));
     }
 
-    // Muestra los dados cuando cambia el resultado recibido.
+    
+// Ejecuta DadosVisuales.
     private void DadosVisuales()
     {
         var d = Motor.ObtenerDados();
@@ -461,7 +473,8 @@ public sealed class ControladorJuego : IControladorJuego
         EjecutarVista(() => vista.MostrarDados(d.Uno, d.Dos, total, d.Hardware));
     }
 
-    // Actualiza el tablero y los botones al avanzar una animación.
+    
+// Ejecuta ActualizarAnimacion.
     private void ActualizarAnimacion()
     {
         lock (bloqueo)
@@ -478,7 +491,8 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Guarda el tamaño disponible y vuelve a ubicar los elementos.
+    
+// Ejecuta CambiarTamano.
     public void CambiarTamano(double anchoDisponible, double altoDisponible)
     {
         lock (bloqueo)
@@ -489,7 +503,8 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Envía una acción disponible y espera la respuesta del servidor.
+    
+// Ejecuta Solicitar.
     private void Solicitar(string tipo, bool permitido, int casilla = 0)
     {
         if (!permitido)
@@ -513,7 +528,8 @@ public sealed class ControladorJuego : IControladorJuego
         Publicar();
     }
 
-    // Pide al servidor que lance los dados.
+    
+// Ejecuta SolicitarTirarDados.
     public void SolicitarTirarDados()
     {
         lock (bloqueo)
@@ -522,7 +538,8 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Pide al servidor la compra; la tarjeta RFID es la única confirmación (no hay diálogo intermedio).
+    
+// Ejecuta SolicitarComprar.
     public void SolicitarComprar()
     {
         lock (bloqueo)
@@ -531,7 +548,8 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Avisa al servidor que el jugador no quiere comprar.
+    
+// Ejecuta RechazarCompra.
     public void RechazarCompra()
     {
         lock (bloqueo)
@@ -540,7 +558,8 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Pide al servidor que termine el turno.
+    
+// Ejecuta TerminarTurno.
     public void TerminarTurno()
     {
         lock (bloqueo)
@@ -549,7 +568,8 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Pide el estado completo para actualizar el cliente.
+    
+// Ejecuta ConsultarEstado.
     public void ConsultarEstado()
     {
         lock (bloqueo)
@@ -567,8 +587,9 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Corrige únicamente una identidad cuyo registro fue rechazado. Los jugadores
-    // aceptados conservan su socket y su credencial; no se reinicia la mesa.
+    
+    
+// Ejecuta ReintentarRegistro.
     internal void ReintentarRegistro(string nuevoNombre)
     {
         lock (bloqueo)
@@ -581,8 +602,9 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Pide al servidor que simule una tarjeta (solo modo simulador). Útil cuando esta pantalla
-    // no aloja el servidor y por lo tanto no tiene un puerto serial propio que inyectar.
+    
+    
+// Ejecuta SimularTarjetaRemota.
     public void SimularTarjetaRemota(string uid)
     {
         lock (bloqueo)
@@ -592,7 +614,8 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Abre el historial y pide las transacciones.
+    
+// Ejecuta AbrirHistorial.
     public void AbrirHistorial()
     {
         lock (bloqueo)
@@ -606,7 +629,8 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Pide las transacciones del jugador y del tipo elegidos.
+    
+// Ejecuta FiltrarHistorial.
     public void FiltrarHistorial(string jugador, string tipo)
     {
         lock (bloqueo)
@@ -623,7 +647,8 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Recorre las transacciones y conserva las que cumplen los filtros.
+    
+// Ejecuta ActualizarHistorial.
     private void ActualizarHistorial()
     {
         filtradas = new ListaSimple<TransaccionVista>();
@@ -665,7 +690,8 @@ public sealed class ControladorJuego : IControladorJuego
         PublicarHistorial();
     }
 
-    // Prepara el registro seleccionado y sus botones de navegación.
+    
+// Ejecuta PublicarHistorial.
     private void PublicarHistorial()
     {
         string texto = "No hay transacciones con estos filtros.";
@@ -682,7 +708,8 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Redacta la transacción en una frase legible en vez de mostrar los códigos crudos.
+    
+// Ejecuta DescribirTransaccion.
     private string DescribirTransaccion(TransaccionVista t)
     {
         string monto = "₡" + t.Monto.ToString("N0");
@@ -702,7 +729,8 @@ public sealed class ControladorJuego : IControladorJuego
         };
     }
 
-    // Cambia un id crudo (Jx, BANCO, -) por el nombre del jugador cuando se conoce.
+    
+// Ejecuta NombreDe.
     private string NombreDe(string id) => id switch
     {
         "BANCO" => "el Banco",
@@ -710,7 +738,8 @@ public sealed class ControladorJuego : IControladorJuego
         _ => estado.Jugadores.Buscar(j => j.Id == id, out var jugador) ? jugador.Nombre : id
     };
 
-    // Selecciona la transacción anterior.
+    
+// Ejecuta HistorialAnterior.
     public void HistorialAnterior()
     {
         lock (bloqueo)
@@ -720,7 +749,8 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Selecciona la siguiente transacción.
+    
+// Ejecuta HistorialSiguiente.
     public void HistorialSiguiente()
     {
         lock (bloqueo)
@@ -730,7 +760,8 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Selecciona la transacción más antigua.
+    
+// Ejecuta HistorialPrimero.
     public void HistorialPrimero()
     {
         lock (bloqueo)
@@ -740,7 +771,8 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Selecciona la transacción más reciente.
+    
+// Ejecuta HistorialUltimo.
     public void HistorialUltimo()
     {
         lock (bloqueo)
@@ -750,7 +782,8 @@ public sealed class ControladorJuego : IControladorJuego
         }
     }
 
-    // Avisa de la salida y cierra la conexión.
+    
+// Ejecuta Desconectar.
     public void Desconectar()
     {
         lock (bloqueo)

@@ -20,7 +20,8 @@ internal sealed class Sesion
     internal JugadorConectado Jugador;
     internal bool Cerrada => cerrada;
 
-    // Guarda el socket y los métodos que recibirán sus mensajes.
+    
+// Crea el objeto.
     internal Sesion(TcpClient tcp, Action<Sesion, Mensaje> recibir, Action<Sesion> desconectar)
     {
         this.tcp = tcp;
@@ -29,7 +30,8 @@ internal sealed class Sesion
         tcp.NoDelay = true;
     }
 
-    // Inicia los hilos que leen y envían mensajes de esta conexión.
+    
+// Ejecuta Iniciar.
     internal void Iniciar()
     {
         new Thread(Escribir)
@@ -44,7 +46,8 @@ internal sealed class Sesion
         }.Start();
     }
 
-    // Agrega el mensaje a la cola de envío.
+    
+// Ejecuta Enviar.
     internal void Enviar(Mensaje m)
     {
         lock (bloqueo)
@@ -64,7 +67,8 @@ internal sealed class Sesion
         señal.Set();
     }
 
-    // Saca mensajes de la cola y los envía por el socket.
+    
+// Ejecuta Escribir.
     private void Escribir()
     {
         try
@@ -107,7 +111,8 @@ internal sealed class Sesion
         }
     }
 
-    // Recibe las líneas del cliente y las pasa al servidor.
+    
+// Ejecuta Leer.
     private void Leer()
     {
         try
@@ -131,9 +136,9 @@ internal sealed class Sesion
                 }
                 catch (Exception e) when (e is not (IOException or SocketException or ObjectDisposedException or DecoderFallbackException or InvalidOperationException))
                 {
-                    // Un fallo inesperado al procesar la accion de ESTE jugador no debe tumbar
-                    // el hilo (y con un Thread sin envolver, todo el proceso: la partida de los
-                    // otros tres) para siempre. Se avisa a esta sesion y se sigue leyendo.
+                    
+                    
+                    
                     Enviar(ConstructorMensajes.Error("DESCONOCIDA", "ACCION_INVALIDA", "Error interno al procesar la solicitud."));
                 }
             }
@@ -148,7 +153,8 @@ internal sealed class Sesion
         }
     }
 
-    // Prepara el aviso final y cierra después de enviarlo.
+    
+// Ejecuta FinalizarConAviso.
     internal void FinalizarConAviso(Mensaje aviso)
     {
         lock (bloqueo)
@@ -166,7 +172,8 @@ internal sealed class Sesion
         señal.Set();
     }
 
-    // Espera a que termine el envío del aviso de cierre.
+    
+// Ejecuta EsperarCierre.
     internal void EsperarCierre()
     {
         if (!cierreCompleto.Wait(2500))
@@ -175,7 +182,8 @@ internal sealed class Sesion
         }
     }
 
-    // Cierra el socket y avisa que la sesión terminó.
+    
+// Ejecuta Cerrar.
     internal void Cerrar()
     {
         cerrada = true;
@@ -194,7 +202,8 @@ internal sealed class JugadorConectado
     internal string Id => Oficial.Id;
     internal string Nombre => Oficial.Nombre;
 
-    // Guarda la referencia al jugador del banco y su conexion.
+    
+// Crea el objeto.
     internal JugadorConectado(Monopoly.Administracion.Jugador jugador)
     {
         Oficial = jugador;

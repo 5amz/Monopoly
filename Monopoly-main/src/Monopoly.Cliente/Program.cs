@@ -9,7 +9,8 @@ using Monopoly.Protocolo;
 namespace Monopoly.Cliente;
 internal static class Program
 {
-    // Inicia el programa.
+    
+// Ejecuta Main.
     [STAThread]
     private static void Main()
     {
@@ -42,7 +43,8 @@ internal sealed class CicloVentanas : ApplicationContext
     private readonly ControladorMesaConexion controladorMesa;
     private bool vinculado;
     private bool cerrando;
-    // Prepara las ventanas y conecta sus controladores.
+    
+// Crea el objeto.
     internal CicloVentanas()
     {
         servidor = new ServidorLocalCliente(opciones);
@@ -69,14 +71,16 @@ internal sealed class CicloVentanas : ApplicationContext
         conexion.Show();
     }
 
-    // Guarda la opción de Pico y su puerto.
+    
+// Ejecuta ConfigurarHardware.
     private void ConfigurarHardware(bool usarPico, string puerto)
     {
         opciones.UsarHardware = usarPico;
         opciones.PuertoSerial = puerto;
     }
 
-    // Abre la ventana del juego.
+    
+// Ejecuta AbrirJuego.
     private void AbrirJuego()
     {
         juego.ConfigurarHerramientasLocales(servidor.Activo, servidor.UsarHardware,
@@ -88,7 +92,8 @@ internal sealed class CicloVentanas : ApplicationContext
         }
     }
 
-    // Pide confirmar el cierre de la aplicación.
+    
+// Ejecuta SolicitarCierre.
     private void SolicitarCierre(object? sender, FormClosingEventArgs e)
     {
         if (!cerrando)
@@ -98,7 +103,8 @@ internal sealed class CicloVentanas : ApplicationContext
         }
     }
 
-    // Oculta la ventana del historial.
+    
+// Ejecuta OcultarHistorial.
     private void OcultarHistorial(object? sender, FormClosingEventArgs e)
     {
         if (!cerrando)
@@ -108,7 +114,8 @@ internal sealed class CicloVentanas : ApplicationContext
         }
     }
 
-    // Cierra las ventanas de la aplicación.
+    
+// Ejecuta Cerrar.
     private void Cerrar()
     {
         cerrando = true;
@@ -119,7 +126,8 @@ internal sealed class CicloVentanas : ApplicationContext
         ExitThread();
     }
 
-    // Libera los recursos al cerrar.
+    
+// Ejecuta Dispose.
     protected override void Dispose(bool disposing)
     {
         if (disposing)
@@ -146,13 +154,15 @@ internal sealed class ServidorLocalCliente : IServidorEmbebido, IDisposable
     public event Action? ServidorListo;
     public event Action<string>? ServidorFallo;
 
-    // Guarda las opciones del servidor local.
+    
+// Crea el objeto.
     public ServidorLocalCliente(ConfiguracionPartida opciones)
     {
         this.opciones = opciones;
     }
 
-    // Inicia el servidor con las opciones elegidas.
+    
+// Ejecuta Iniciar.
     public void Iniciar(int puerto)
     {
         lock (bloqueo)
@@ -177,7 +187,8 @@ internal sealed class ServidorLocalCliente : IServidorEmbebido, IDisposable
         }
     }
 
-    // Envía una tarjeta al servidor en el modo sin Pico.
+    
+// Ejecuta InyectarSerialSimulado.
     public bool InyectarSerialSimulado(string linea)
     {
         lock (bloqueo)
@@ -186,7 +197,8 @@ internal sealed class ServidorLocalCliente : IServidorEmbebido, IDisposable
         }
     }
 
-    // Guarda las transacciones del servidor.
+    
+// Ejecuta ExportarTransacciones.
     public string ExportarTransacciones(string ruta)
     {
         lock (bloqueo)
@@ -196,7 +208,8 @@ internal sealed class ServidorLocalCliente : IServidorEmbebido, IDisposable
         }
     }
 
-    // Detiene el recurso en uso.
+    
+// Ejecuta Detener.
     public void Detener()
     {
         lock (bloqueo)
@@ -206,7 +219,8 @@ internal sealed class ServidorLocalCliente : IServidorEmbebido, IDisposable
         }
     }
 
-    // Libera los recursos al cerrar.
+    
+// Ejecuta Dispose.
     public void Dispose()
     {
         lock (bloqueo)

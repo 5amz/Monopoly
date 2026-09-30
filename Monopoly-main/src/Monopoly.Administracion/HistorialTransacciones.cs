@@ -2,7 +2,7 @@ using System.Text;
 
 namespace Monopoly.Administracion;
 
-/// <summary>Tipos económicos mínimos definidos para la partida.</summary>
+
 public enum TipoTransaccion
 {
     CompraPropiedad,
@@ -14,7 +14,7 @@ public enum TipoTransaccion
     PremioPorPasarInicio
 }
 
-/// <summary>Registro inmutable de una operación económica validada por Banco.</summary>
+
 public sealed class Transaccion
 {
     public long Id { get; }
@@ -26,7 +26,8 @@ public sealed class Transaccion
     public decimal Monto { get; }
     public string Descripcion { get; }
 
-    /// <summary>Crea una transacción ya validada y asignada por el historial.</summary>
+    
+// Crea el objeto.
     public Transaccion(
         long id,
         DateTime fechaHora,
@@ -47,15 +48,16 @@ public sealed class Transaccion
         Descripcion = descripcion;
     }
 
-    /// <summary>Convierte una transacción en una línea legible para pantalla o TXT.</summary>
+    
+// Ejecuta ConvertirALinea.
     public string ConvertirALinea()
         => $"{Id}|{FechaHora:O}|Turno={NumeroTurno}|{Tipo}|Origen={IdJugadorOrigen}|Destino={IdJugadorDestino}|Monto={Monto}|{Descripcion}";
 }
 
-/// <summary>
-/// Lista doblemente enlazada propia para conservar las transacciones oficiales.
-/// Sus nodos se mantienen privados para que otros módulos no los manipulen.
-/// </summary>
+
+
+
+
 public sealed class HistorialTransacciones
 {
     private NodoTransaccion _primero;
@@ -64,7 +66,8 @@ public sealed class HistorialTransacciones
 
     public int Cantidad { get; private set; }
 
-    /// <summary>Crea y agrega una transacción al final del historial.</summary>
+    
+// Ejecuta Registrar.
     public Transaccion Registrar(
         int numeroTurno,
         TipoTransaccion tipo,
@@ -100,7 +103,8 @@ public sealed class HistorialTransacciones
         return transaccion;
     }
 
-    /// <summary>Recorre las transacciones desde la más antigua a la más reciente.</summary>
+    
+// Ejecuta RecorrerAntiguaAReciente.
     public void RecorrerAntiguaAReciente(Action<Transaccion> accion)
     {
         if (accion is null)
@@ -114,7 +118,8 @@ public sealed class HistorialTransacciones
         }
     }
 
-    /// <summary>Recorre las transacciones desde la más reciente a la más antigua.</summary>
+    
+// Ejecuta RecorrerRecienteAAntigua.
     public void RecorrerRecienteAAntigua(Action<Transaccion> accion)
     {
         if (accion is null)
@@ -128,19 +133,22 @@ public sealed class HistorialTransacciones
         }
     }
 
-    /// <summary>Genera el historial completo en orden cronológico.</summary>
+    
+// Ejecuta GenerarReporteCompleto.
     public string GenerarReporteCompleto()
     {
         return GenerarReporte(t => true, desdeAntigua: true);
     }
 
-    /// <summary>Genera el historial completo en orden inverso.</summary>
+    
+// Ejecuta GenerarReporteInverso.
     public string GenerarReporteInverso()
     {
         return GenerarReporte(t => true, desdeAntigua: false);
     }
 
-    /// <summary>Busca todas las transacciones donde el jugador sea origen o destino.</summary>
+    
+// Ejecuta GenerarReportePorJugador.
     public string GenerarReportePorJugador(string idJugador)
     {
         if (string.IsNullOrWhiteSpace(idJugador))
@@ -152,13 +160,15 @@ public sealed class HistorialTransacciones
             desdeAntigua: true);
     }
 
-    /// <summary>Busca todas las transacciones de un tipo.</summary>
+    
+// Ejecuta GenerarReportePorTipo.
     public string GenerarReportePorTipo(TipoTransaccion tipo)
     {
         return GenerarReporte(t => t.Tipo == tipo, desdeAntigua: true);
     }
 
-    /// <summary>Escribe una copia legible del historial en un archivo TXT.</summary>
+    
+// Ejecuta ExportarATxt.
     public void ExportarATxt(string rutaArchivo)
     {
         if (string.IsNullOrWhiteSpace(rutaArchivo))
@@ -170,6 +180,7 @@ public sealed class HistorialTransacciones
         File.WriteAllText(rutaArchivo, GenerarReporteCompleto(), Encoding.UTF8);
     }
 
+// Ejecuta GenerarReporte.
     private string GenerarReporte(Func<Transaccion, bool> filtro, bool desdeAntigua)
     {
         var texto = new StringBuilder();
@@ -193,6 +204,7 @@ public sealed class HistorialTransacciones
         public NodoTransaccion Anterior { get; set; }
         public NodoTransaccion Siguiente { get; set; }
 
+// Crea el objeto.
         public NodoTransaccion(Transaccion transaccion)
         {
             Transaccion = transaccion;

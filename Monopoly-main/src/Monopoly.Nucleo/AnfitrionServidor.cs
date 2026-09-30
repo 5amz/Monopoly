@@ -11,7 +11,8 @@ public sealed class AnfitrionServidor
 
     public event Action? ServidorListo;
     public event Action<string>? ServidorFallo;
-    // Recibe el servidor que se usará para crear la partida.
+    
+// Crea el objeto.
     public AnfitrionServidor(IServidorEmbebido servidor)
     {
         this.servidor = servidor;
@@ -27,7 +28,8 @@ public sealed class AnfitrionServidor
         };
     }
 
-    // Inicia el servidor sin esperar una entrada de consola.
+    
+// Ejecuta Iniciar.
     public void Iniciar(int puerto)
     {
         _ = Task.Run(() =>
@@ -44,7 +46,8 @@ public sealed class AnfitrionServidor
         });
     }
 
-    // Detiene el servidor y cierra sus conexiones.
+    
+// Ejecuta Detener.
     public void Detener()
     {
         servidor.Detener();

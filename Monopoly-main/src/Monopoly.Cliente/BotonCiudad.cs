@@ -7,22 +7,30 @@ internal sealed class BotonCiudad : Button
 {
     private bool encima;
     private bool pulsado;
-    // Resalta el botón al entrar el cursor.
+    
+// Ejecuta OnMouseEnter.
     protected override void OnMouseEnter(System.EventArgs e) { encima = true; base.OnMouseEnter(e); Invalidate(); }
-    // Quita el resaltado al salir el cursor.
+    
+// Ejecuta OnMouseLeave.
     protected override void OnMouseLeave(System.EventArgs e) { encima = pulsado = false; base.OnMouseLeave(e); Invalidate(); }
-    // Marca el botón al presionarlo.
+    
+// Ejecuta OnMouseDown.
     protected override void OnMouseDown(MouseEventArgs e) { pulsado = e.Button == MouseButtons.Left; base.OnMouseDown(e); Invalidate(); }
-    // Quita la marca al soltar el botón.
+    
+// Ejecuta OnMouseUp.
     protected override void OnMouseUp(MouseEventArgs e) { pulsado = false; base.OnMouseUp(e); Invalidate(); }
-    // Actualiza el botón cuando cambia su estado.
+    
+// Ejecuta OnEnabledChanged.
     protected override void OnEnabledChanged(System.EventArgs e) { pulsado = false; base.OnEnabledChanged(e); Invalidate(); }
-    // Marca el botón al pulsar la barra espaciadora.
+    
+// Ejecuta OnKeyDown.
     protected override void OnKeyDown(KeyEventArgs e) { if (e.KeyCode == Keys.Space) pulsado = true; base.OnKeyDown(e); Invalidate(); }
-    // Quita la marca al soltar la tecla.
+    
+// Ejecuta OnKeyUp.
     protected override void OnKeyUp(KeyEventArgs e) { pulsado = false; base.OnKeyUp(e); Invalidate(); }
 
-    // Dibuja el control en la pantalla.
+    
+// Ejecuta OnPaint.
     protected override void OnPaint(PaintEventArgs e)
     {
         Color fondo = !Enabled ? Color.FromArgb(37, 38, 44) : pulsado ? FlatAppearance.MouseDownBackColor : encima ? FlatAppearance.MouseOverBackColor : BackColor;

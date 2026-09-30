@@ -8,7 +8,8 @@ public sealed class Campo
     public string Clave { get; }
     public string Valor { get; }
 
-    // Guarda el nombre y el valor de un campo del mensaje.
+    
+// Crea el objeto.
     public Campo(string Clave, string Valor)
     {
         this.Clave = Clave;
@@ -19,7 +20,8 @@ public sealed class Campo
 public sealed class TablaCampos
 {
     private readonly ListaSimple<Campo> campos = new();
-    // Agrega un elemento al final de la estructura.
+    
+// Ejecuta Agregar.
     internal void Agregar(string clave, string valor)
     {
         if (campos.Buscar(c => c.Clave == clave, out _))
@@ -32,7 +34,8 @@ public sealed class TablaCampos
 
     internal ListaSimple<Campo> Elementos => campos;
 
-    // Busca el campo y avisa si existe.
+    
+// Ejecuta IntentarObtener.
     public bool IntentarObtener(string clave, out string valor)
     {
         if (campos.Buscar(c => c.Clave == clave, out var campo))
@@ -51,20 +54,23 @@ public sealed class Mensaje
     private readonly TablaCampos campos;
     public string Tipo { get; }
 
-    // Guarda el tipo y los campos del mensaje.
+    
+// Crea el objeto.
     internal Mensaje(string tipo, TablaCampos tabla)
     {
         Tipo = tipo;
         campos = tabla;
     }
 
-    // Crea un mensaje con el tipo indicado.
+    
+// Ejecuta Crear.
     public static Mensaje Crear(string tipo)
     {
         return new(tipo, new TablaCampos());
     }
 
-    // Crea una copia del mensaje con el campo indicado.
+    
+// Ejecuta Con.
     public Mensaje Con(string clave, string valor)
     {
         var copia = new TablaCampos();
@@ -77,48 +83,56 @@ public sealed class Mensaje
         return new Mensaje(Tipo, copia);
     }
 
-    // Crea una copia del mensaje con el campo indicado.
+    
+// Ejecuta Con.
     public Mensaje Con(string clave, int valor)
     {
         return Con(clave, valor.ToString(CultureInfo.InvariantCulture));
     }
 
-    // Crea una copia del mensaje con el campo indicado.
+    
+// Ejecuta Con.
     public Mensaje Con(string clave, decimal valor)
     {
         return Con(clave, valor.ToString(CultureInfo.InvariantCulture));
     }
 
-    // Crea una copia del mensaje con el campo indicado.
+    
+// Ejecuta Con.
     public Mensaje Con(string clave, bool valor)
     {
         return Con(clave, valor ? "true" : "false");
     }
 
-    // Busca y devuelve el dato solicitado.
+    
+// Ejecuta Obtener.
     public string Obtener(string clave)
     {
         return campos.IntentarObtener(clave, out var valor) ? valor : throw new FormatException("Falta el campo " + clave);
     }
 
+// Ejecuta ObtenerOpcional.
     public string ObtenerOpcional(string clave, string defecto = "")
     {
         return campos.IntentarObtener(clave, out var valor) ? valor : defecto;
     }
 
-    // Convierte el texto a un número entero.
+    
+// Ejecuta Entero.
     public int Entero(string clave)
     {
         return Numeros.Entero(Obtener(clave));
     }
 
-    // Lee un monto con punto decimal.
+    
+// Ejecuta Dinero.
     public decimal Dinero(string clave)
     {
         return Numeros.Decimal(Obtener(clave));
     }
 
-    // Lee un valor true o false del mensaje.
+    
+// Ejecuta Booleano.
     public bool Booleano(string clave)
     {
         return Obtener(clave) switch
@@ -130,7 +144,8 @@ public sealed class Mensaje
 
     internal ListaSimple<Campo> Campos => campos.Elementos;
 
-    // Junta el tipo y los campos para enviar el mensaje.
+    
+// Ejecuta ToString.
     public override string ToString()
     {
         AnalizadorMensajes.Validar(this);
@@ -146,7 +161,8 @@ public sealed class Mensaje
 
 public static class Numeros
 {
-    // Convierte el texto a un número entero.
+    
+// Ejecuta Entero.
     public static int Entero(string texto)
     {
         if (!int.TryParse(texto, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out int n))
@@ -157,7 +173,8 @@ public static class Numeros
         return n;
     }
 
-    // Convierte el texto a un número decimal con punto.
+    
+// Ejecuta Decimal.
     public static decimal Decimal(string texto)
     {
         if (!decimal.TryParse(texto, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out decimal n))
@@ -171,19 +188,22 @@ public static class Numeros
 
 public static class ConstructorMensajes
 {
-    // Crea la petición con el id del jugador.
+    
+// Ejecuta Accion.
     public static Mensaje Accion(string tipo, string id)
     {
         return Mensaje.Crear(tipo).Con("idJugador", id);
     }
 
-    // Envía o prepara un mensaje que explica el error.
+    
+// Ejecuta Error.
     public static Mensaje Error(string accion, string codigo, string texto)
     {
         return Mensaje.Crear("ERROR").Con("accion", accion).Con("codigo", codigo).Con("mensaje", TextoSeguro(texto));
     }
 
-    // Quita del texto los separadores que usa el protocolo.
+    
+// Ejecuta TextoSeguro.
     public static string TextoSeguro(string texto)
     {
         var s = new StringBuilder();

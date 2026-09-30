@@ -1,22 +1,24 @@
 namespace Monopoly.Administracion;
 
-/// <summary>Contrato que el módulo de turnos debe ofrecer al servidor.</summary>
+
 public interface IValidadorTurnos
 {
-    /// <summary>Indica si el jugador puede ejecutar la acción en este momento.</summary>
+    
+// Ejecuta EsTurnoActual.
     bool EsTurnoActual(string idJugador);
 }
 
-/// <summary>
-/// Contrato mínimo para recibir el total generado por el dado electrónico.
-/// El coordinador consume cada resultado una sola vez.
-/// </summary>
+
+
+
+
 public interface IProveedorDados
 {
+// Ejecuta IntentarConsumirResultado.
     bool IntentarConsumirResultado(out ResultadoDados resultado);
 }
 
-/// <summary>Resultado validado. El formato serial antiguo deja las caras desconocidas.</summary>
+
 public sealed class ResultadoDados
 {
     public int Total { get; }
@@ -24,6 +26,7 @@ public sealed class ResultadoDados
     public int? Dado2 { get; }
     public bool CarasDisponibles => Dado1.HasValue && Dado2.HasValue;
 
+// Crea el objeto.
     public ResultadoDados(int total)
     {
         if (total is < 2 or > 12)
@@ -32,8 +35,10 @@ public sealed class ResultadoDados
         Total = total;
     }
 
+// Crea el objeto.
     public ResultadoDados(int dado1, int dado2) : this(dado1, dado2, dado1 + dado2) { }
 
+// Crea el objeto.
     public ResultadoDados(int dado1, int dado2, int total) : this(total)
     {
         Dado primero = new(dado1);
@@ -46,34 +51,41 @@ public sealed class ResultadoDados
     }
 }
 
-/// <summary>Contrato para delegar acciones al módulo de tablero, turnos y dados.</summary>
+
 public interface IAccionesJuego
 {
+// Ejecuta TirarDados.
     ResultadoAccionJuego TirarDados(string idJugador);
+// Ejecuta ComprarPropiedad.
     ResultadoAccionJuego ComprarPropiedad(string idJugador);
+// Ejecuta NoComprarPropiedad.
     ResultadoAccionJuego NoComprarPropiedad(string idJugador);
+// Ejecuta TerminarTurno.
     ResultadoAccionJuego TerminarTurno(string idJugador);
 }
 
-/// <summary>Contrato para crear la representación espacial al registrar un jugador.</summary>
+
 public interface IRegistroJugadoresJuego
 {
+// Ejecuta RegistrarJugadorEnJuego.
     ResultadoAccionJuego RegistrarJugadorEnJuego(string idJugador, string nombre);
 }
 
-/// <summary>Contrato para retirar un jugador de las estructuras del juego.</summary>
+
 public interface IEliminacionJugadoresJuego
 {
+// Ejecuta EliminarJugadorDelJuego.
     ResultadoAccionJuego EliminarJugadorDelJuego(string idJugador);
 }
 
-/// <summary>Resultado que un módulo del juego devuelve al servidor.</summary>
+
 public sealed class ResultadoAccionJuego
 {
     public bool FueExitosa { get; }
     public string Mensaje { get; }
     public string Datos { get; }
 
+// Crea el objeto.
     public ResultadoAccionJuego(bool fueExitosa, string mensaje, string datos = "")
     {
         FueExitosa = fueExitosa;

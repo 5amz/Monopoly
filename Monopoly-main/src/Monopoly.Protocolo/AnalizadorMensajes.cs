@@ -15,19 +15,22 @@ public static class ConstantesProtocolo
 
 public static class AnalizadorMensajes
 {
-    // Comprueba el tamaño y los caracteres del nombre.
+    
+// Ejecuta NombreValido.
     public static bool NombreValido(string nombre)
     {
         return nombre.Trim() == nombre && nombre.Trim().Length > 0 && Regex.IsMatch(nombre, @"\A[\p{L}\p{Nd} -]{1,16}\z");
     }
 
-    // Comprueba que el id tenga letras o números.
+    
+// Ejecuta IdValido.
     public static bool IdValido(string id)
     {
         return Regex.IsMatch(id, @"\A[A-Za-z0-9]{1,8}\z");
     }
 
-    // Separa la línea recibida y crea el mensaje.
+    
+// Ejecuta Analizar.
     public static Mensaje Analizar(string linea)
     {
         if (linea.Length == 0 || linea.Length > ConstantesProtocolo.MaximoLinea || linea.Contains('\r') || linea.Contains('\n'))
@@ -53,7 +56,8 @@ public static class AnalizadorMensajes
         return m;
     }
 
-    // Revisa que el mensaje tenga los campos y valores correctos.
+    
+// Ejecuta Validar.
     public static void Validar(Mensaje m)
     {
         string esquema = m.Tipo switch
@@ -216,7 +220,8 @@ public static class AnalizadorMensajes
         }
     }
 
-    // Comprueba los datos de cada fila recibida.
+    
+// Ejecuta ValidarLista.
     private static void ValidarLista(string clave, string texto)
     {
         if (texto.Length == 0)
@@ -275,7 +280,8 @@ public static class AnalizadorMensajes
         }
     }
 
-    // Lee hasta el salto de línea y rechaza mensajes incompletos o demasiado grandes.
+    
+// Ejecuta LeerLinea.
     public static string? LeerLinea(StreamReader lector)
     {
         var texto = new StringBuilder();
@@ -311,8 +317,10 @@ public interface IServidorEmbebido
 {
     event Action? ServidorListo;
     event Action<string>? ServidorFallo;
-    // Inicia el servidor sin esperar una entrada de consola.
+    
+// Ejecuta Iniciar.
     void Iniciar(int puerto);
-    // Detiene el servidor y cierra sus conexiones.
+    
+// Ejecuta Detener.
     void Detener();
 }

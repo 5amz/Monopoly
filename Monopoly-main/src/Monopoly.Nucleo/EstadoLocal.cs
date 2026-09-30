@@ -14,7 +14,8 @@ public sealed class EstadoLocal
     public string IdJugadorActual { get; private set; } = "-";
 
     private readonly ColaCircular<string> log = new(50);
-    // Lee el estado completo y reemplaza los datos anteriores al terminar.
+    
+// Ejecuta AplicarSnapshot.
     public void AplicarSnapshot(Mensaje mensaje)
     {
         AnalizadorMensajes.Validar(mensaje);
@@ -35,7 +36,7 @@ public sealed class EstadoLocal
         {
             string[] campos = fila.Split(',');
             CasillaVista casilla = new(Numeros.Entero(campos[0]), campos[1], campos[2], Numeros.Decimal(campos[3]), Numeros.Decimal(campos[4]), campos[5]);
-            // Los snapshots reemplazan nodos como antes; conservamos el recurso del mismo id.
+            
             foreach (var anterior in Casillas)
                 if (anterior.Id == casilla.Id && anterior.Tipo == casilla.Tipo)
                 {
@@ -79,7 +80,8 @@ public sealed class EstadoLocal
         IdJugadorActual = actual;
     }
 
-    // Lee una fila del mensaje y crea los datos de un jugador.
+    
+// Ejecuta LeerJugador.
     private JugadorVista LeerJugador(string fila)
     {
         string[] campos = fila.Split(',');
@@ -95,7 +97,8 @@ public sealed class EstadoLocal
         return new JugadorVista(campos[0], campos[1], Numeros.Decimal(campos[2]), Numeros.Entero(campos[3]), campos[4] == "1", propiedades);
     }
 
-    // Guarda las últimas cincuenta líneas del registro.
+    
+// Ejecuta RegistrarLog.
     public void RegistrarLog(string linea)
     {
         if (log.Cantidad == 50)
@@ -106,7 +109,8 @@ public sealed class EstadoLocal
         log.Encolar(linea);
     }
 
-    // Junta las líneas del registro para mostrarlas en la vista.
+    
+// Ejecuta ObtenerLog.
     public string ObtenerLog()
     {
         StringBuilder texto = new();
@@ -118,7 +122,8 @@ public sealed class EstadoLocal
         return texto.ToString();
     }
 
-    // Agrega la transacción por orden de id y evita repetirla.
+    
+// Ejecuta AgregarTransaccion.
     public void AgregarTransaccion(TransaccionVista transaccion)
     {
         if (Transacciones.Buscar(anterior => anterior.Id == transaccion.Id, out _))
@@ -147,13 +152,15 @@ public sealed class EstadoLocal
         Transacciones = copia.Congelar();
     }
 
-    // Crea los datos de una transacción recibida como evento.
+    
+// Ejecuta DesdeEvento.
     public static TransaccionVista DesdeEvento(Mensaje mensaje)
     {
         return new TransaccionVista(mensaje.Entero("id"), mensaje.Entero("turno"), mensaje.Obtener("tipo"), mensaje.Obtener("origen"), mensaje.Obtener("destino"), mensaje.Dinero("monto"), mensaje.Obtener("descripcion"));
     }
 
-    // Lee una respuesta del historial y guarda sus transacciones.
+    
+// Ejecuta AplicarHistorial.
     public void AplicarHistorial(Mensaje mensaje)
     {
         AnalizadorMensajes.Validar(mensaje);

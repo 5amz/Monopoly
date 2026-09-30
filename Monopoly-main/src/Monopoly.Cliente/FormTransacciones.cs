@@ -38,7 +38,8 @@ public sealed class FormTransacciones : Form, IVistaTransacciones
         Text = "Siguiente",
         AutoSize = true
     };
-    // Prepara los filtros y botones del historial.
+    
+// Crea el objeto.
     public FormTransacciones()
     {
         Text = "Ciudad de Canciones · Historial";
@@ -90,43 +91,50 @@ public sealed class FormTransacciones : Form, IVistaTransacciones
         TemaCiudad.Aplicar(this);
     }
 
-    // Guarda el controlador de esta vista.
+    
+// Ejecuta Vincular.
     public void Vincular(IControladorJuego juego)
     {
         controlador = juego;
     }
 
-    // Aplica los filtros elegidos.
+    
+// Ejecuta Aplicar_Click.
     private void Aplicar_Click(object? sender, EventArgs e)
     {
         controlador.FiltrarHistorial(jugadores.Text, tipos.Text);
     }
 
-    // Pide la transacción anterior.
+    
+// Ejecuta Anterior_Click.
     private void Anterior_Click(object? sender, EventArgs e)
     {
         controlador.HistorialAnterior();
     }
 
-    // Pide la siguiente transacción.
+    
+// Ejecuta Siguiente_Click.
     private void Siguiente_Click(object? sender, EventArgs e)
     {
         controlador.HistorialSiguiente();
     }
 
-    // Pide la transacción más antigua.
+    
+// Ejecuta Primero_Click.
     private void Primero_Click(object? sender, EventArgs e)
     {
         controlador.HistorialPrimero();
     }
 
-    // Pide la transacción más reciente.
+    
+// Ejecuta Ultimo_Click.
     private void Ultimo_Click(object? sender, EventArgs e)
     {
         controlador.HistorialUltimo();
     }
 
-    // Muestra la transacción seleccionada.
+    
+// Ejecuta MostrarHistorial.
     public void MostrarHistorial(PaginaHistorial pagina)
     {
         texto.Text = pagina.Texto;
@@ -135,7 +143,8 @@ public sealed class FormTransacciones : Form, IVistaTransacciones
         siguiente.Enabled = pagina.PuedeSiguiente;
     }
 
-    // Muestra las opciones para filtrar el historial.
+    
+// Ejecuta MostrarFiltros.
     public void MostrarFiltros(ListaSimple<string> ids, ListaSimple<string> categorias)
     {
         string id = jugadores.Text;
@@ -156,7 +165,8 @@ public sealed class FormTransacciones : Form, IVistaTransacciones
         tipos.SelectedItem = tipo.Length == 0 ? "TODOS" : tipo;
     }
 
-    // Abre la ventana del historial.
+    
+// Ejecuta Abrir.
     public void Abrir()
     {
         Show();

@@ -1,6 +1,6 @@
 namespace Monopoly
 {
-    /// <summary>Nodo de la cola circular de turnos.</summary>
+    
     public class NodoJugador
     {
         public string IdJugador { get; }
@@ -8,6 +8,7 @@ namespace Monopoly
         public NodoJugador Next { get; set; }
         public JugadorTablero Jugador { get; }
 
+// Crea el objeto.
         public NodoJugador(JugadorTablero jugador)
         {
             if (jugador == null)

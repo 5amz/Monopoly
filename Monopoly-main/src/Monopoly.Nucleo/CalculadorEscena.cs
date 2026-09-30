@@ -5,14 +5,15 @@ namespace Monopoly.Nucleo;
 public sealed class CalculadorEscena
 {
     private readonly GeometriaTablero geometria = new();
-    // Prepara las imágenes, los textos y sus posiciones para dibujar el tablero.
+    
+// Ejecuta Calcular.
     public EscenaTablero Calcular(EstadoLocal estado, MotorAnimacion motor, double ancho, double alto, CartaVisible? carta = null)
     {
         ListaSimple<ElementoEscena> elementos = new();
         ListaSimple<Rectangulo> lugares = geometria.Calcular(ancho, alto);
         var esquina = lugares.Obtener(12);
         double x = esquina.X, y = esquina.Y, w = esquina.Ancho, h = esquina.Alto;
-        // El fondo pertenece a la ventana: dibujarlo aquí lo oculta bajo centro y casillas.
+        
         elementos.Agregar(new ElementoEscena("IMAGEN", new Rectangulo(x + w, y + h, w * 5, h * 5), "logo_central"));
         int posicion = 0;
         foreach (CasillaVista casilla in estado.Casillas)
@@ -38,7 +39,7 @@ public sealed class CalculadorEscena
             posicion++;
         }
 
-        // La parte superior de la pila siempre ocupa el mismo lugar; la carta se superpone.
+        
         var pila = new Rectangulo(x + w * 1.15, y + h * 5.05, w * 2, h * 0.8);
         elementos.Agregar(new ElementoEscena("IMAGEN", pila, "mazo_eventos"));
         if (carta is not null)
@@ -71,7 +72,8 @@ public sealed class CalculadorEscena
         return new EscenaTablero(elementos.Congelar());
     }
 
-    // Calcula el lugar de la ficha durante la animación y evita que tape otras fichas.
+    
+// Ejecuta UbicarFicha.
     private Rectangulo UbicarFicha(JugadorVista jugador, EstadoLocal estado, ListaSimple<Rectangulo> lugares, MotorAnimacion motor)
     {
         double posicion = motor.PosicionVisual(jugador.Id, jugador.Posicion, lugares.Cantidad);

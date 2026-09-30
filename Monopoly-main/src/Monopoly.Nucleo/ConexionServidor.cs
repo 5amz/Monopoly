@@ -36,7 +36,8 @@ public sealed class ConexionServidor : IDisposable
         }
     }
 
-    // Abre la conexión con el servidor.
+    
+// Ejecuta Conectar.
     public void Conectar(string ip, int puerto)
     {
         Desconectar();
@@ -61,7 +62,8 @@ public sealed class ConexionServidor : IDisposable
         }
     }
 
-    // Agrega el mensaje a la cola de envío.
+    
+// Ejecuta Enviar.
     public bool Enviar(Mensaje mensaje)
     {
         _ = mensaje.ToString();
@@ -82,7 +84,8 @@ public sealed class ConexionServidor : IDisposable
         return true;
     }
 
-    // Saca mensajes de la cola y los envía por el socket.
+    
+// Ejecuta Escribir.
     private void Escribir(CancellationToken token)
     {
         while (!token.IsCancellationRequested)
@@ -105,7 +108,8 @@ public sealed class ConexionServidor : IDisposable
         }
     }
 
-    // Lee los mensajes que llegan por el socket.
+    
+// Ejecuta Leer.
     private void Leer(string ip, int puerto, CancellationToken token)
     {
         int intento = 0;
@@ -190,7 +194,8 @@ public sealed class ConexionServidor : IDisposable
         }
     }
 
-    // Envía PING y comprueba si el servidor sigue respondiendo.
+    
+// Ejecuta Latido.
     private void Latido()
     {
         if (Environment.TickCount64 - Interlocked.Read(ref ultimoPong) > 30000)
@@ -209,7 +214,8 @@ public sealed class ConexionServidor : IDisposable
         }
     }
 
-    // Cierra el socket y borra los mensajes pendientes.
+    
+// Ejecuta CerrarTransporte.
     private void CerrarTransporte()
     {
         ping?.Dispose();
@@ -231,7 +237,8 @@ public sealed class ConexionServidor : IDisposable
         }
     }
 
-    // Envía el aviso de salida antes de cerrar la conexión.
+    
+// Ejecuta EnviarCierre.
     public void EnviarCierre(Mensaje mensaje)
     {
         try
@@ -247,14 +254,16 @@ public sealed class ConexionServidor : IDisposable
         }
     }
 
-    // Cancela los siguientes intentos de conexión.
+    
+// Ejecuta SuspenderReintentos.
     public void SuspenderReintentos()
     {
         cancelacion?.Cancel();
         Reintentando = false;
     }
 
-    // Avisa de la salida y cierra la conexión.
+    
+// Ejecuta Desconectar.
     public void Desconectar()
     {
         var c = Interlocked.Exchange(ref cancelacion, null);
@@ -280,7 +289,8 @@ public sealed class ConexionServidor : IDisposable
         c.Dispose();
     }
 
-    // Libera los recursos al terminar de usar el objeto.
+    
+// Ejecuta Dispose.
     public void Dispose()
     {
         if (dispuesto)

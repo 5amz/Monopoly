@@ -6,7 +6,8 @@ using Monopoly.Nucleo;
 namespace Monopoly.Cliente;
 internal static class PintorEscena
 {
-    // Dibuja las imágenes y los textos del tablero.
+    
+// Ejecuta Pintar.
     internal static void Pintar(Graphics dibujo, EscenaTablero escena)
     {
         dibujo.InterpolationMode = InterpolationMode.HighQualityBicubic;

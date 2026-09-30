@@ -97,7 +97,8 @@ public sealed class FormJuego : Form, IVistaJuego
     {
         Interval = 16
     };
-    // Prepara la ventana del juego.
+    
+// Crea el objeto.
     public FormJuego()
     {
         InformarMultimedia("Configuración de música: " + Path.Combine(AppContext.BaseDirectory, "Musica", "musica.json"));
@@ -205,7 +206,8 @@ public sealed class FormJuego : Form, IVistaJuego
         detalles.SetToolTip(simularDados, "Sustituye el pulsador del Pico solo en modo SIMULADOR. Primero identifica al jugador con la tarjeta de prueba.");
     }
 
-    // Prepara las opciones del organizador.
+    
+// Ejecuta ConfigurarHerramientasLocales.
     public void ConfigurarHerramientasLocales(bool anfitrion, bool usarHardware,
         Func<string, bool> recibirLineaSerial, Func<string, string> guardarTransacciones)
     {
@@ -216,7 +218,8 @@ public sealed class FormJuego : Form, IVistaJuego
             Text = PersonalizacionCiudad.Titulo + (usarHardware ? " · Organizador / Pico" : " · Organizador / SIMULADOR");
     }
 
-    // Abre la tarjeta de prueba para jugar sin Pico.
+    
+// Ejecuta SimularTarjeta_Click.
     private void SimularTarjeta_Click(object? sender, EventArgs e)
     {
         using var dialogo = new FormTarjetaSimulada(
@@ -225,7 +228,8 @@ public sealed class FormJuego : Form, IVistaJuego
         dialogo.ShowDialog(this);
     }
 
-    // Guarda el historial en un archivo de texto.
+    
+// Ejecuta Exportar_Click.
     private void Exportar_Click(object? sender, EventArgs e)
     {
         if (exportarTransacciones is null) return;
@@ -250,7 +254,8 @@ public sealed class FormJuego : Form, IVistaJuego
         }
     }
 
-    // Guarda el controlador de esta vista.
+    
+// Ejecuta Vincular.
     public void Vincular(IControladorJuego juego)
     {
         controlador = juego;
@@ -265,19 +270,22 @@ public sealed class FormJuego : Form, IVistaJuego
         reloj.Start();
     }
 
-    // Solicita la compra de la propiedad.
+    
+// Ejecuta Comprar_Click.
     private void Comprar_Click(object? sender, EventArgs e)
     {
         controlador.SolicitarComprar();
     }
 
-    // Rechaza la compra de la propiedad.
+    
+// Ejecuta NoComprar_Click.
     private void NoComprar_Click(object? sender, EventArgs e)
     {
         controlador.RechazarCompra();
     }
 
-    // Pide confirmar el fin del turno.
+    
+// Ejecuta Terminar_Click.
     private void Terminar_Click(object? sender, EventArgs e)
     {
         if (MessageBox.Show(this, "¿Terminar el turno de " + jugadorEnTurno + "?", "Terminar turno",
@@ -287,13 +295,15 @@ public sealed class FormJuego : Form, IVistaJuego
         }
     }
 
-    // Pide abrir el historial.
+    
+// Ejecuta Historial_Click.
     private void Historial_Click(object? sender, EventArgs e)
     {
         controlador.AbrirHistorial();
     }
 
-    // Muestra los elementos preparados para el tablero.
+    
+// Ejecuta MostrarEscena.
     public void MostrarEscena(EscenaTablero escena)
     {
         foreach (var elemento in escena.Elementos)
@@ -305,7 +315,8 @@ public sealed class FormJuego : Form, IVistaJuego
         tablero.Mostrar(escena);
     }
 
-    // Muestra los jugadores y señala el turno actual.
+    
+// Ejecuta MostrarJugadores.
     public void MostrarJugadores(ListaSimple<JugadorVista> datos, string idEnTurno)
     {
         jugadorEnTurno = idEnTurno;
@@ -329,13 +340,15 @@ public sealed class FormJuego : Form, IVistaJuego
         turnoActual.Text = "Turno de:\n" + nombreActual;
     }
 
-    // Muestra el total de los dados al pasar el cursor.
+    
+// Ejecuta MostrarDados.
     public void MostrarDados(int uno, int dos, int total, bool esHardware)
     {
         detalles.SetToolTip(tablero, total == 0 ? "Esperando dados" : "Total: " + total);
     }
 
-    // Habilita las acciones permitidas en este turno.
+    
+// Ejecuta MostrarEstadoBotones.
     public void MostrarEstadoBotones(EstadoBotones valor)
     {
         comprar.Enabled = valor.PuedeComprar;
@@ -346,7 +359,8 @@ public sealed class FormJuego : Form, IVistaJuego
         simularDados.Enabled = modoSimuladorConectado && puedeTirarDados;
     }
 
-    // Actualiza el registro de la partida.
+    
+// Ejecuta AgregarLineaLog.
     public void AgregarLineaLog(string linea)
     {
         textoRegistro = linea;
@@ -355,25 +369,29 @@ public sealed class FormJuego : Form, IVistaJuego
         log.ScrollToCaret();
     }
 
-    // Recibe el aviso de la carta que ya muestra el tablero.
+    
+// Ejecuta MostrarCarta.
     public void MostrarCarta(string cancion, string texto, string efecto, int valor)
     {
     }
 
-    // Muestra un aviso con el error recibido.
+    
+// Ejecuta MostrarError.
     public void MostrarError(string codigo, string mensaje)
     {
         MessageBox.Show(this, mensaje, codigo, MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
-    // Muestra el ganador de la partida.
+    
+// Ejecuta MostrarFinPartida.
     public void MostrarFinPartida(ResultadoPartida resultado)
     {
         resultadoFinal = "GANADOR: " + resultado.Nombre + " (" + resultado.IdGanador + ") · Patrimonio: ₡" + resultado.Patrimonio.ToString("N0") + " · " + resultado.Motivo;
         OcultarPagoPendiente();
     }
 
-    // Muestra la conexión y las opciones del modo sin Pico.
+    
+// Ejecuta MostrarEstadoConexion.
     public void MostrarEstadoConexion(EstadoConexion valor)
     {
         estado.Text = valor.Texto;
@@ -384,7 +402,8 @@ public sealed class FormJuego : Form, IVistaJuego
         simularDados.Enabled = modoSimuladorConectado && puedeTirarDados;
     }
 
-    // Pide la tarjeta necesaria para confirmar el pago.
+    
+// Ejecuta MostrarPagoPendiente.
     public void MostrarPagoPendiente(string idJugador, string descripcion, bool tarjetaRechazada)
     {
         if (tarjetaRechazada)
@@ -403,7 +422,8 @@ public sealed class FormJuego : Form, IVistaJuego
         bannerPago.Visible = true;
     }
 
-    // Oculta el pago pendiente o muestra el resultado final.
+    
+// Ejecuta OcultarPagoPendiente.
     public void OcultarPagoPendiente()
     {
         bannerPago.Visible = resultadoFinal.Length > 0;
@@ -415,17 +435,20 @@ public sealed class FormJuego : Form, IVistaJuego
         }
     }
 
-    // Envía el sonido recibido al controlador de música.
+    
+// Ejecuta MostrarEfecto.
     public void MostrarEfecto(EfectoMultimedia efecto) => multimedia.Recibir(efecto);
 
-    // Añade un aviso de música al registro.
+    
+// Ejecuta InformarMultimedia.
     private void InformarMultimedia(string texto)
     {
         informeMultimedia.AppendLine(texto);
         log.Text = textoRegistro + "\r\nMULTIMEDIA\r\n" + informeMultimedia;
     }
 
-    // Abre la ventana del registro.
+    
+// Ejecuta AbrirRegistro.
     private void AbrirRegistro()
     {
         if (ventanaRegistro is null || ventanaRegistro.IsDisposed)
@@ -439,7 +462,8 @@ public sealed class FormJuego : Form, IVistaJuego
         ventanaRegistro.BringToFront();
     }
 
-    // Dibuja la imagen de fondo.
+    
+// Ejecuta OnPaintBackground.
     protected override void OnPaintBackground(PaintEventArgs e)
     {
         if (BackgroundImage is not Image foto)
@@ -452,7 +476,8 @@ public sealed class FormJuego : Form, IVistaJuego
         e.Graphics.DrawImage(foto, (ClientSize.Width - ancho) / 2, (ClientSize.Height - alto) / 2, ancho, alto);
     }
 
-    // Detiene las animaciones y la música.
+    
+// Ejecuta DetenerReloj.
     public void DetenerReloj()
     {
         if (detenida) return;
@@ -461,7 +486,8 @@ public sealed class FormJuego : Form, IVistaJuego
         reloj.Dispose();
         multimedia.Dispose();
     }
-    // Libera los recursos al cerrar.
+    
+// Ejecuta Dispose.
     protected override void Dispose(bool disposing)
     {
         if (disposing)
@@ -478,7 +504,8 @@ public sealed class FormJuego : Form, IVistaJuego
 
 internal sealed class FormTarjetaSimulada : Form
 {
-    // Prepara la ventana para usar una tarjeta sin Pico.
+    
+// Crea el objeto.
     public FormTarjetaSimulada(Action<string> enviarUid, string jugadorActual)
     {
         Text = "SIMULADOR RFID · administración local";

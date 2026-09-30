@@ -2,8 +2,8 @@
 
 namespace Monopoly.Administracion;
 
-// Representa la información oficial de un participante
-// El saldo solo puede cambiarse desde Banco
+
+
 
 public sealed class Jugador
 {
@@ -11,16 +11,17 @@ public sealed class Jugador
     public string Nombre { get; }
     public decimal Saldo { get; private set; }
 
-    // El coordinador sincroniza estos datos con el tablero oficial.
+    
     public int PosicionActual { get; private set; }
     public bool EstaActivo { get; private set; }
 
-    // Índice lineal propio. Los objetos y su propietario son autoritativos en Tablero.
+    
     public PropiedadesJugador Propiedades { get; } = new();
     public int CantidadPropiedades => Propiedades.Cantidad;
     public decimal Patrimonio => Saldo + Propiedades.ValorOficial;
 
-    // Crea un jugador y valida sus datos iniciales
+    
+// Crea el objeto.
     public Jugador(string id, string nombre, decimal saldoInicial)
     {
         if (string.IsNullOrWhiteSpace(id))
@@ -39,19 +40,22 @@ public sealed class Jugador
         EstaActivo = true;
     }
 
-    // Actualiza el saldo desde el Banco; no es accesible al cliente
+    
+// Ejecuta EstablecerSaldoDesdeBanco.
     internal void EstablecerSaldoDesdeBanco(decimal nuevoSaldo)
     {
         Saldo = nuevoSaldo;
     }
 
-    // Actualiza la posición como parte de una acción autorizada
+    
+// Ejecuta ActualizarPosicionDesdeServidor.
     internal void ActualizarPosicionDesdeServidor(int nuevaPosicion)
     {
         PosicionActual = nuevaPosicion;
     }
 
-    // Cambia el estado activo del jugador desde el servidor
+    
+// Ejecuta CambiarEstadoActivoDesdeServidor.
     internal void CambiarEstadoActivoDesdeServidor(bool activo)
     {
         EstaActivo = activo;
@@ -59,10 +63,10 @@ public sealed class Jugador
 
 }
 
-/// <summary>
-/// Lista simplemente enlazada creada por el equipo. Guarda referencias a las
-/// propiedades oficiales; nunca copia precios ni propietarios del tablero.
-/// </summary>
+
+
+
+
 public sealed class PropiedadesJugador
 {
     private NodoPropiedad? _primero;
@@ -78,6 +82,7 @@ public sealed class PropiedadesJugador
         }
     }
 
+// Ejecuta Contiene.
     public bool Contiene(int idPropiedad)
     {
         for (NodoPropiedad? nodo = _primero; nodo is not null; nodo = nodo.Siguiente)
@@ -86,6 +91,7 @@ public sealed class PropiedadesJugador
         return false;
     }
 
+// Ejecuta Recorrer.
     public void Recorrer(Action<global::Monopoly.Propiedad> accion)
     {
         ArgumentNullException.ThrowIfNull(accion);
@@ -93,6 +99,7 @@ public sealed class PropiedadesJugador
             accion(nodo.Propiedad);
     }
 
+// Ejecuta AgregarDesdeTablero.
     internal void AgregarDesdeTablero(global::Monopoly.Propiedad propiedad)
     {
         if (Contiene(propiedad.Id))
@@ -106,6 +113,7 @@ public sealed class PropiedadesJugador
         Cantidad++;
     }
 
+// Ejecuta VaciarDesdeTablero.
     internal void VaciarDesdeTablero()
     {
         _primero = null;
@@ -117,12 +125,13 @@ public sealed class PropiedadesJugador
     {
         public global::Monopoly.Propiedad Propiedad { get; }
         public NodoPropiedad? Siguiente { get; set; }
+// Crea el objeto.
         public NodoPropiedad(global::Monopoly.Propiedad propiedad) => Propiedad = propiedad;
     }
 }
 
-// Registro lineal propio para no depender de List o LinkedList.
-// Se mantiene internal porque solamente Banco debe conocer esta estructura.
+
+
 internal sealed class RegistroJugadores
 {
     private NodoJugador? _primero;
@@ -130,7 +139,8 @@ internal sealed class RegistroJugadores
 
     public int Cantidad => _cantidad;
 
-    // Agrega un jugador al final si su ID aún no existe.
+    
+// Ejecuta Agregar.
     public bool Agregar(Jugador jugador)
     {
         if (BuscarPorId(jugador.Id) is not null)
@@ -154,7 +164,8 @@ internal sealed class RegistroJugadores
         return true;
     }
 
-    // Recorre los nodos y devuelve el jugador cuyo ID coincide.
+    
+// Ejecuta BuscarPorId.
     public Jugador? BuscarPorId(string id)
     {
         NodoJugador? actual = _primero;
@@ -169,7 +180,8 @@ internal sealed class RegistroJugadores
         return null;
     }
 
-    // Solo se usa para deshacer un registro antes de que la partida comience.
+    
+// Ejecuta Retirar.
     public bool Retirar(string id)
     {
         NodoJugador? anterior = null;
@@ -189,7 +201,8 @@ internal sealed class RegistroJugadores
         return false;
     }
 
-    // Recorre los jugadores sin entregar acceso a los nodos internos.
+    
+// Ejecuta Recorrer.
     public void Recorrer(Action<Jugador> accion)
     {
         if (accion is null)
@@ -208,6 +221,7 @@ internal sealed class RegistroJugadores
         public Jugador Jugador { get; }
         public NodoJugador? Siguiente { get; set; }
 
+// Crea el objeto.
         public NodoJugador(Jugador jugador)
         {
             Jugador = jugador;

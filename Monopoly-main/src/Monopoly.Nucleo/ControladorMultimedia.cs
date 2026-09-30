@@ -4,8 +4,8 @@ namespace Monopoly.Nucleo;
 
 public sealed record DefinicionEfecto(string Pista, int Prioridad);
 
-// Coordina los nodos del tablero y la cola ORIGINAL de MotorAnimacion.
-// La música pertenece a las casillas/cartas y espera en la cola enlazada de recorridos.
+
+
 public sealed class ControladorMultimedia : IDisposable
 {
     private readonly MusicaCiudad musica;
@@ -14,11 +14,13 @@ public sealed class ControladorMultimedia : IDisposable
     private MotorAnimacion? motor;
     private long ultimoTick;
     private bool detenido;
+// Crea el objeto.
     public ControladorMultimedia(string carpetaMusica, Action<string> informar, IAudioCiudad salida, Func<long>? reloj = null)
     {
         ahora = reloj ?? (() => Environment.TickCount64);
         musica = new MusicaCiudad(carpetaMusica, informar, salida, ahora);
     }
+// Ejecuta Definir.
     internal static DefinicionEfecto Definir(EfectoMultimedia efecto) => efecto.Tipo switch
     {
         "eliminado" => new("derrota", 20),
@@ -26,6 +28,7 @@ public sealed class ControladorMultimedia : IDisposable
         _ when efecto.Carta is not null => new(efecto.Carta.Imagen, 10),
         _ => new("", 0)
     };
+// Ejecuta Vincular.
     public void Vincular(MotorAnimacion nuevo, Func<EstadoLocal?>? estado = null)
     {
         if (motor is not null) motor.CasillaAlcanzada -= AlCaerEnCasilla;
@@ -36,6 +39,7 @@ public sealed class ControladorMultimedia : IDisposable
         if (leerEstado?.Invoke() is EstadoLocal actual) musica.Preparar(actual);
         ActualizarTextos(); musica.Iniciar();
     }
+// Ejecuta AlCaerEnCasilla.
     private void AlCaerEnCasilla(string jugador, int posicion)
     {
         var estado = leerEstado?.Invoke();
@@ -43,18 +47,23 @@ public sealed class ControladorMultimedia : IDisposable
         int cantidad = estado.Casillas.Cantidad;
         musica.Casilla(estado.Casillas.Obtener((posicion % cantidad + cantidad) % cantidad));
     }
+// Ejecuta Recibir.
     public void Recibir(EfectoMultimedia efecto)
     {
         if (!detenido) motor?.EncolarEfecto(efecto);
     }
+// Ejecuta AlternarSilencio.
     public void AlternarSilencio() { musica.Silenciar(!musica.Silenciado); ActualizarTextos(); motor?.Publicar(); }
+// Ejecuta AlternarFondo.
     public void AlternarFondo() { musica.ActivarFondo(!musica.FondoActivado); ActualizarTextos(); motor?.Publicar(); }
+// Ejecuta ActualizarTextos.
     private void ActualizarTextos()
     {
         if (motor is null) return;
         motor.TextoSilencio = musica.Silenciado ? "Activar sonido" : "Silenciar";
         motor.TextoFondo = musica.FondoActivado ? "Fondo: sí" : "Fondo: no";
     }
+// Ejecuta Actualizar.
     public void Actualizar()
     {
         if (detenido) return;
@@ -68,6 +77,7 @@ public sealed class ControladorMultimedia : IDisposable
         musica.Actualizar();
         motor?.Publicar();
     }
+// Ejecuta Dispose.
     public void Dispose()
     {
         if (detenido) return;

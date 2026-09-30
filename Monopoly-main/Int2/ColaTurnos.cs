@@ -1,12 +1,13 @@
 namespace Monopoly
 {
-    /// <summary>Cola circular propia para controlar el orden de los turnos.</summary>
+    
     public class ColaTurnos
     {
         public NodoJugador Head { get; private set; }
         public NodoJugador Tail { get; private set; }
         public int Cantidad { get; private set; }
 
+// Crea el objeto.
         public ColaTurnos()
         {
             Head = null;
@@ -14,6 +15,7 @@ namespace Monopoly
             Cantidad = 0;
         }
 
+// Ejecuta AgregarJugador.
         public void AgregarJugador(JugadorTablero jugador)
         {
             if (jugador == null || !jugador.Activo || BuscarJugador(jugador.IdJugador) is not null)
@@ -36,11 +38,13 @@ namespace Monopoly
             Cantidad++;
         }
 
+// Ejecuta ObtenerJugadorActual.
         public NodoJugador ObtenerJugadorActual()
         {
             return Head;
         }
 
+// Ejecuta BuscarJugador.
         public NodoJugador BuscarJugador(string idJugador)
         {
             if (Head == null || string.IsNullOrWhiteSpace(idJugador))
@@ -58,6 +62,7 @@ namespace Monopoly
             return null;
         }
 
+// Ejecuta AvanzarTurno.
         public NodoJugador AvanzarTurno(JugadorTablero jugador)
         {
             if (Head == null || jugador == null || !Head.IdJugador.Equals(jugador.IdJugador, StringComparison.OrdinalIgnoreCase))
@@ -71,7 +76,8 @@ namespace Monopoly
             return Head;
         }
 
-        /// <summary>También se aplica al retirar al jugador que tenía el turno.</summary>
+        
+// Ejecuta OmitirTurnosPerdidos.
         public void OmitirTurnosPerdidos()
         {
             while (Head is not null && Head.Jugador.PierdeTurno)
@@ -82,7 +88,8 @@ namespace Monopoly
             }
         }
 
-        /// <summary>Retira un jugador de la cola circular al quedar eliminado.</summary>
+        
+// Ejecuta EliminarJugador.
         public bool EliminarJugador(string idJugador)
         {
             if (Head is null || string.IsNullOrWhiteSpace(idJugador))

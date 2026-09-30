@@ -5,12 +5,14 @@ namespace Monopoly.Nucleo;
 
 public interface IAudioCiudad : IDisposable
 {
+// Ejecuta Reproducir.
     bool Reproducir(string archivo, double inicio, double duracion);
     bool Reproduciendo { get; }
+// Ejecuta Detener.
     void Detener();
 }
 
-// Reproduce el fragmento guardado en la casilla/carta original; no mantiene una lista de pistas.
+
 public sealed class MusicaCiudad : IDisposable
 {
     private readonly string carpeta;
@@ -25,6 +27,7 @@ public sealed class MusicaCiudad : IDisposable
     public bool Silenciado { get; private set; }
     public bool FondoActivado { get; private set; }
     public double MilisegundosPorCasilla => configuracion.SegundosPorCasilla * 1000;
+// Crea el objeto.
     public MusicaCiudad(string carpeta, Action<string> informar, IAudioCiudad audio, Func<long>? ahora = null)
     {
         this.carpeta = carpeta;
@@ -37,24 +40,29 @@ public sealed class MusicaCiudad : IDisposable
         this.audio = audio;
         this.ahora = ahora ?? (() => Environment.TickCount64);
     }
+// Ejecuta Iniciar.
     public void Iniciar() { enPartida = true; Actualizar(); }
+// Ejecuta Silenciar.
     public void Silenciar(bool valor)
     {
         Silenciado = valor;
         if (valor) { audio.Detener(); hasta = 0; fondoSonando = false; }
         else Actualizar();
     }
+// Ejecuta ActivarFondo.
     public void ActivarFondo(bool valor)
     {
         FondoActivado = valor;
         if (!valor && fondoSonando) { audio.Detener(); hasta = 0; fondoSonando = false; }
         Actualizar();
     }
+// Ejecuta Preparar.
     public void Preparar(EstadoLocal estado)
     {
         foreach (var casilla in estado.Casillas) configuracion.Aplicar(casilla);
         if (estado.Carta is not null) configuracion.Aplicar(estado.Carta);
     }
+// Ejecuta Casilla.
     public void Casilla(CasillaVista casilla)
     {
         configuracion.Aplicar(casilla);
@@ -62,6 +70,7 @@ public sealed class MusicaCiudad : IDisposable
         audio.Detener(); hasta = 0; fondoSonando = false;
         Reproducir(casilla.Imagen, casilla.Musica);
     }
+// Ejecuta Carta.
     public void Carta(CartaVisible carta)
     {
         configuracion.Aplicar(carta);
@@ -69,12 +78,14 @@ public sealed class MusicaCiudad : IDisposable
         audio.Detener(); hasta = 0; fondoSonando = false;
         Reproducir(carta.Imagen, carta.Musica);
     }
+// Ejecuta Evento.
     public void Evento(string nombre)
     {
         if (Silenciado) return;
         audio.Detener(); hasta = 0; fondoSonando = false;
         Reproducir(nombre, nombre == "victoria" ? victoria : nombre == "derrota" ? derrota : null);
     }
+// Ejecuta Reproducir.
     private bool Reproducir(string clave, FragmentoMusical? pista)
     {
         if (pista is null || pista.Omitida || string.IsNullOrWhiteSpace(pista.Archivo)) return false;
@@ -97,6 +108,7 @@ public sealed class MusicaCiudad : IDisposable
         fondoSonando = clave == "fondo";
         return true;
     }
+// Ejecuta Actualizar.
     public void Actualizar()
     {
         if (!enPartida || Silenciado) return;
@@ -104,6 +116,8 @@ public sealed class MusicaCiudad : IDisposable
         audio.Detener(); hasta = 0; fondoSonando = false;
         if (FondoActivado) Reproducir("fondo", fondo);
     }
+// Ejecuta Detener.
     public void Detener() { enPartida = false; hasta = 0; fondoSonando = false; audio.Detener(); }
+// Ejecuta Dispose.
     public void Dispose() { Detener(); audio.Dispose(); configuracion.Dispose(); }
 }

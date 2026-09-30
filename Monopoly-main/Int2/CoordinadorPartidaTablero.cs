@@ -2,10 +2,10 @@ using Monopoly.Administracion;
 
 namespace Monopoly;
 
-/// <summary>
-/// Une las estructuras propias y el Banco. Toda acción del servidor de producción
-/// pasa por este coordinador; el lector solo suministra identidad y dados.
-/// </summary>
+
+
+
+
 public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego, IRegistroJugadoresJuego, IEliminacionJugadoresJuego
 {
     private readonly ServidorJuego _servidor;
@@ -26,30 +26,29 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
     public bool HayPagoPendiente => _pagoPendiente is not null;
     public string IdJugadorPagoPendiente => _idPagoPendiente ?? string.Empty;
     public string DescripcionPagoPendiente { get; private set; } = string.Empty;
-    public bool RequiereRfidParaPagos { get; }
     public CartaEvento UltimaCartaAplicada { get; private set; }
     public event Action<string, CartaEvento> CartaAplicada;
 
+// Crea el objeto.
     public CoordinadorPartidaTablero(
         ServidorJuego servidor,
         Tablero tablero,
         ColaTurnos turnos,
         int maximoJugadores = 4,
         IProveedorDados proveedorDados = null,
-        MazoEventos mazoEventos = null,
-        bool requerirRfidParaPagos = true)
+        MazoEventos mazoEventos = null)
     {
         _servidor = servidor ?? throw new ArgumentNullException(nameof(servidor));
         _tablero = tablero ?? throw new ArgumentNullException(nameof(tablero));
         _turnos = turnos ?? throw new ArgumentNullException(nameof(turnos));
         _proveedorDados = proveedorDados;
         _mazoEventos = mazoEventos;
-        RequiereRfidParaPagos = requerirRfidParaPagos;
         if (maximoJugadores <= 0)
             throw new ArgumentOutOfRangeException(nameof(maximoJugadores));
         _jugadores = new JugadorTablero[maximoJugadores];
     }
 
+// Ejecuta RegistrarJugadorEnJuego.
     public ResultadoAccionJuego RegistrarJugadorEnJuego(string idJugador, string nombre)
     {
         if (_tablero.Head is null)
@@ -75,6 +74,7 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
         return new(false, "No hay espacio para otro jugador en el tablero.");
     }
 
+// Ejecuta EsTurnoActual.
     public bool EsTurnoActual(string idJugador)
     {
         NodoJugador actual = _turnos.ObtenerJugadorActual();
@@ -82,6 +82,7 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
             && actual.IdJugador.Equals(idJugador, StringComparison.OrdinalIgnoreCase);
     }
 
+// Ejecuta TirarDados.
     public ResultadoAccionJuego TirarDados(string idJugador)
     {
         ResultadoAccionJuego invalida = ValidarAccionTurno(idJugador);
@@ -108,6 +109,7 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
         return new(casilla.FueExitosa, $"Dados procesados. {casilla.Mensaje}", datos);
     }
 
+// Ejecuta ComprarPropiedad.
     public ResultadoAccionJuego ComprarPropiedad(string idJugador)
     {
         ResultadoAccionJuego invalida = ValidarAccionTurno(idJugador);
@@ -126,7 +128,7 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
             ResultadoOperacion pago = _servidor.ProcesarCompraPropiedad(idJugador, propiedad.Precio, propiedad.Nombre, NumeroTurnoActual);
             if (!pago.FueExitosa)
                 return new(false, pago.Mensaje);
-            // El servidor serializa las acciones. La validación y asignación no pueden intercalarse con otra compra.
+            
             _tablero.AsignarPropiedad(jugador, propiedad);
             _servidor.SincronizarPropiedadesDesdeTablero(idJugador, _tablero);
             _idCompraPendiente = null;
@@ -134,6 +136,7 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
         });
     }
 
+// Ejecuta NoComprarPropiedad.
     public ResultadoAccionJuego NoComprarPropiedad(string idJugador)
     {
         ResultadoAccionJuego invalida = ValidarAccionTurno(idJugador);
@@ -146,6 +149,7 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
         return new(true, "El jugador decidió no comprar la propiedad.");
     }
 
+// Ejecuta PagarAlquilerActual.
     public ResultadoAccionJuego PagarAlquilerActual(string idJugador)
     {
         ResultadoAccionJuego invalida = ValidarAccionTurno(idJugador);
@@ -160,7 +164,8 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
             ConvertirPago(_servidor.ProcesarPagoAlquiler(idJugador, propietario, propiedad.Alquiler, propiedad.Nombre, NumeroTurnoActual), idJugador));
     }
 
-    /// <summary>Solo se llama desde la entrada serial del servidor, nunca desde un comando del cliente.</summary>
+    
+// Ejecuta ConfirmarPagoConRfid.
     public ResultadoAccionJuego ConfirmarPagoConRfid(string idJugador)
     {
         if (!HayPagoPendiente)
@@ -170,10 +175,11 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
         ResultadoAccionJuego invalida = ValidarAccionTurno(idJugador);
         if (invalida is not null) return invalida;
         Func<ResultadoAccionJuego> pago = _pagoPendiente;
-        LimpiarPagoPendiente(); // Consume una vez, incluso si Banco rechaza o elimina al jugador.
+        LimpiarPagoPendiente(); 
         return pago();
     }
 
+// Ejecuta EliminarJugadorDelJuego.
     public ResultadoAccionJuego EliminarJugadorDelJuego(string idJugador)
     {
         JugadorTablero jugador = ObtenerJugadorTablero(idJugador);
@@ -189,7 +195,7 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
         if (string.Equals(_idPagoPendiente, idJugador, StringComparison.OrdinalIgnoreCase)) LimpiarPagoPendiente();
         if (teniaTurno)
         {
-            // EliminarJugador ya deja la cabeza en el sucesor. No llamar AvanzarTurno otra vez.
+            
             _turnos.OmitirTurnosPerdidos();
             _dadosUsadosEnTurno = false;
             if (_servidor.Estado == EstadoPartida.EnCurso) NumeroTurnoActual++;
@@ -197,6 +203,7 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
         return new(true, "Jugador retirado de tablero y turnos.");
     }
 
+// Ejecuta TerminarTurno.
     public ResultadoAccionJuego TerminarTurno(string idJugador)
     {
         ResultadoAccionJuego invalida = ValidarAccionTurno(idJugador);
@@ -215,7 +222,8 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
         return new(true, "Turno terminado.", siguiente.IdJugador);
     }
 
-    /// <summary>Movimiento interno del coordinador; no se expone en el protocolo cliente.</summary>
+    
+// Ejecuta MoverJugador.
     public ResultadoAccionJuego MoverJugador(string idJugador, int cantidadCasillas)
     {
         ResultadoAccionJuego invalida = ValidarAccionTurno(idJugador);
@@ -230,6 +238,7 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
         return new(true, "Jugador movido.", $"Posicion={_tablero.ObtenerIndiceDeNodo(jugador.Posicion)}");
     }
 
+// Ejecuta AplicarEvento.
     public ResultadoAccionJuego AplicarEvento(string idJugador, CartaEvento carta)
     {
         ResultadoAccionJuego invalida = ValidarAccionTurno(idJugador);
@@ -261,6 +270,7 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
         return new(true, "Evento aplicado.", evento.TipoEvento);
     }
 
+// Ejecuta ResolverPropiedad.
     internal ResultadoAccionJuego ResolverPropiedad(JugadorTablero jugador, Propiedad propiedad)
     {
         if (propiedad.Disponible)
@@ -273,6 +283,7 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
         return PagarAlquilerActual(jugador.IdJugador);
     }
 
+// Ejecuta ResolverEvento.
     internal ResultadoAccionJuego ResolverEvento(JugadorTablero jugador)
     {
         if (_mazoEventos is null || _mazoEventos.Cantidad == 0)
@@ -282,6 +293,7 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
         return new(resultado.FueExitosa, $"Carta: {carta.Descripcion}. {resultado.Mensaje}", resultado.Datos);
     }
 
+// Ejecuta ResolverImpuesto.
     internal ResultadoAccionJuego ResolverImpuesto(JugadorTablero jugador, CasillaEspecial casilla)
     {
         if (casilla.Monto < 0)
@@ -292,6 +304,7 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
             _servidor.ProcesarCobro(jugador.IdJugador, casilla.Monto, casilla.Nombre, TipoTransaccion.PagoAlBanco, NumeroTurnoActual), jugador.IdJugador));
     }
 
+// Ejecuta ObtenerJugadorTablero.
     public JugadorTablero ObtenerJugadorTablero(string idJugador)
     {
         if (string.IsNullOrWhiteSpace(idJugador)) return null;
@@ -301,27 +314,30 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
         return null;
     }
 
+// Ejecuta CalcularPatrimonio.
     public decimal CalcularPatrimonio(string idJugador)
     {
         Jugador oficial = _servidor.Banco.ConsultarJugador(idJugador);
         return oficial is null ? 0 : _tablero.CalcularPatrimonio(ObtenerJugadorTablero(idJugador), oficial.Saldo);
     }
 
-    /// <summary>Empates: conserva el primero en orden de registro, decisión del equipo.</summary>
+    
+// Ejecuta ObtenerGanador.
     public JugadorTablero ObtenerGanador()
         => _tablero.ObtenerGanador(_jugadores, id => _servidor.Banco.ConsultarSaldo(id) ?? 0);
 
+// Ejecuta SolicitarPago.
     private ResultadoAccionJuego SolicitarPago(string idJugador, string descripcion, Func<ResultadoAccionJuego> pago)
     {
         if (HayPagoPendiente)
             return new(false, "Ya existe un pago pendiente.");
-        if (!RequiereRfidParaPagos) return pago();
         _idPagoPendiente = idJugador;
         DescripcionPagoPendiente = descripcion;
         _pagoPendiente = pago;
         return new(true, $"Acerque la tarjeta RFID de {idJugador}: {descripcion}.", "AccionPendiente=RFID_PAGO");
     }
 
+// Ejecuta ConvertirPago.
     private ResultadoAccionJuego ConvertirPago(ResultadoOperacion operacion, string idJugador)
     {
         if (operacion.FueExitosa) return new(true, operacion.Mensaje);
@@ -331,6 +347,7 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
             : new(false, operacion.Mensaje);
     }
 
+// Ejecuta ProcesarCasillaActual.
     private ResultadoAccionJuego ProcesarCasillaActual(JugadorTablero jugador)
     {
         if (++_resolucionesEnCadena > _tablero.Cantidad)
@@ -340,6 +357,7 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
             : new(false, "La posición no contiene una casilla válida.");
     }
 
+// Ejecuta PremiarPasosPorInicio.
     private ResultadoAccionJuego PremiarPasosPorInicio(string idJugador, int veces)
     {
         for (int i = 0; i < veces && _tablero.PremioInicio > 0; i++)
@@ -350,6 +368,7 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
         return new(true, "Premios por Inicio procesados.");
     }
 
+// Ejecuta ValidarAccionTurno.
     private ResultadoAccionJuego ValidarAccionTurno(string idJugador)
     {
         if (_servidor.Estado != EstadoPartida.EnCurso)
@@ -360,9 +379,11 @@ public sealed class CoordinadorPartidaTablero : IValidadorTurnos, IAccionesJuego
         return null;
     }
 
+// Ejecuta EsCompraPendienteDe.
     private bool EsCompraPendienteDe(string idJugador)
         => string.Equals(_idCompraPendiente, idJugador, StringComparison.OrdinalIgnoreCase);
 
+// Ejecuta LimpiarPagoPendiente.
     private void LimpiarPagoPendiente()
     {
         _pagoPendiente = null;

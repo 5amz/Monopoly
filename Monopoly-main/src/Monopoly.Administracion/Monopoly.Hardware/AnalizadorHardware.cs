@@ -4,9 +4,10 @@ using Monopoly.Administracion;
 
 namespace Monopoly.Hardware;
 
-/// <summary>Único analizador del límite serial, compartido por hardware y pruebas.</summary>
+
 public static class AnalizadorHardware
 {
+// Ejecuta IntentarAnalizar.
     public static bool IntentarAnalizar(string? linea, out EventoHardware? evento)
     {
         evento = null;
@@ -47,6 +48,7 @@ public static class AnalizadorHardware
         return true;
     }
 
+// Ejecuta LeerEntero.
     private static bool LeerEntero(string texto, out int valor) =>
         int.TryParse(texto, NumberStyles.None, CultureInfo.InvariantCulture, out valor);
 }

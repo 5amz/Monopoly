@@ -4,18 +4,21 @@ namespace Monopoly
     {
         public int Id {get; set;}
         public string Nombre {get; set;}
+// Crea el objeto.
         public Casilla(int id, string nombre)
         {
             Id = id;
             Nombre = nombre;
         }
 
+// Ejecuta ObtenerInformacion.
         public virtual string ObtenerInformacion()
         {
             return Nombre;
         }
 
-        // Polimorfismo de comportamiento: cada casilla solicita su regla al coordinador.
+        
+// Ejecuta Resolver.
         public virtual Administracion.ResultadoAccionJuego Resolver(CoordinadorPartidaTablero partida, JugadorTablero jugador)
             => new(true, $"La casilla {Nombre} no requiere una operación adicional.");
     }

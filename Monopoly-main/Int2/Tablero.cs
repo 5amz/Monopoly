@@ -1,9 +1,9 @@
 namespace Monopoly
 {
-    /// <summary>
-    /// Lista circular doblemente enlazada de casillas. Administra posiciones y
-    /// propiedades, pero delega todo dinero a ServidorJuego y Banco.
-    /// </summary>
+    
+
+
+
     public class Tablero
     {
         public NodoCasilla Head { get; set; }
@@ -11,6 +11,7 @@ namespace Monopoly
         public int Cantidad { get; set; }
         public decimal PremioInicio { get; set; }
 
+// Crea el objeto.
         public Tablero()
         {
             Head = null;
@@ -18,6 +19,7 @@ namespace Monopoly
             Cantidad = 0;
         }
 
+// Ejecuta AgregarCasilla.
         public void AgregarCasilla(Casilla casilla)
         {
             var nuevoNodo = new NodoCasilla(casilla);
@@ -40,6 +42,7 @@ namespace Monopoly
             Cantidad++;
         }
 
+// Ejecuta ObtenerNodo.
         public NodoCasilla ObtenerNodo(int posicion)
         {
             if (posicion < 0 || posicion >= Cantidad)
@@ -52,12 +55,14 @@ namespace Monopoly
             return actual;
         }
 
+// Ejecuta ObtenerCasilla.
         public Casilla ObtenerCasilla(int posicion)
         {
             return ObtenerNodo(posicion)?.Casilla;
         }
 
-        /// <summary>Devuelve el índice de una posición sin exponer nodos al servidor.</summary>
+        
+// Ejecuta ObtenerIndiceDeNodo.
         public int ObtenerIndiceDeNodo(NodoCasilla nodo)
         {
             if (nodo is null)
@@ -75,7 +80,8 @@ namespace Monopoly
             return -1;
         }
 
-        /// <summary>Mueve al jugador y reporta cuántas veces pasó por inicio.</summary>
+        
+// Ejecuta MoverJugador.
         public ResultadoMovimientoTablero MoverJugador(NodoCasilla posicionActual, int cantidadCasillas, JugadorTablero jugador)
         {
             if (posicionActual == null || jugador == null)
@@ -103,14 +109,16 @@ namespace Monopoly
             return new ResultadoMovimientoTablero(posicion, vecesPasoPorInicio);
         }
 
-        /// <summary>Indica si una propiedad puede ser comprada estructuralmente.</summary>
+        
+// Ejecuta PuedeComprarPropiedad.
         public bool PuedeComprarPropiedad(JugadorTablero jugador, Propiedad propiedad)
         {
             return jugador is not null && jugador.Activo && propiedad is not null
                 && ReferenceEquals(jugador.Posicion?.Casilla, propiedad) && propiedad.Disponible;
         }
 
-        /// <summary>Asigna la propiedad solo después de que Banco autorice el pago.</summary>
+        
+// Ejecuta AsignarPropiedad.
         public bool AsignarPropiedad(JugadorTablero jugador, Propiedad propiedad)
         {
             if (!PuedeComprarPropiedad(jugador, propiedad))
@@ -120,7 +128,8 @@ namespace Monopoly
             return true;
         }
 
-        /// <summary>Cuenta propiedades del jugador para informar el estado oficial.</summary>
+        
+// Ejecuta ContarPropiedadesDe.
         public int ContarPropiedadesDe(JugadorTablero jugador)
         {
             if (jugador is null)
@@ -139,7 +148,8 @@ namespace Monopoly
             return cantidad;
         }
 
-        /// <summary>Indica si el jugador debe pagar alquiler y cuál es el propietario.</summary>
+        
+// Ejecuta PuedePagarAlquiler.
         public bool PuedePagarAlquiler(JugadorTablero jugador, Propiedad propiedad)
         {
             return jugador is not null
@@ -149,7 +159,8 @@ namespace Monopoly
                 && !propiedad.Propietario.IdJugador.Equals(jugador.IdJugador, StringComparison.OrdinalIgnoreCase);
         }
 
-        /// <summary>Aplica el efecto espacial de una carta y reporta su efecto económico.</summary>
+        
+// Ejecuta EjecutarCartaEvento.
         public ResultadoEventoTablero EjecutarCartaEvento(CartaEvento carta, JugadorTablero jugador)
         {
             if (carta == null || jugador == null)
@@ -191,7 +202,8 @@ namespace Monopoly
             }
         }
 
-        /// <summary>Calcula el patrimonio usando el saldo oficial recibido del servidor.</summary>
+        
+// Ejecuta CalcularPatrimonio.
         public decimal CalcularPatrimonio(JugadorTablero jugador, decimal saldoOficial)
         {
             if (jugador == null || saldoOficial < 0)
@@ -210,6 +222,7 @@ namespace Monopoly
             return patrimonio;
         }
 
+// Ejecuta EliminarJugador.
         public void EliminarJugador(JugadorTablero jugador)
         {
             if (jugador == null)
@@ -228,6 +241,7 @@ namespace Monopoly
             }
         }
 
+// Ejecuta ContarJugadoresActivos.
         public int ContarJugadoresActivos(JugadorTablero[] jugadores)
         {
             if (jugadores == null)
@@ -243,6 +257,7 @@ namespace Monopoly
             return cantidadActivos;
         }
 
+// Ejecuta PartidaTerminada.
         public bool PartidaTerminada(JugadorTablero[] jugadores, int turnoActual, int maxTurnos)
         {
             if (jugadores == null || maxTurnos <= 0)
@@ -251,6 +266,7 @@ namespace Monopoly
             return ContarJugadoresActivos(jugadores) <= 1 || turnoActual > maxTurnos;
         }
 
+// Ejecuta ObtenerGanador.
         public JugadorTablero ObtenerGanador(JugadorTablero[] jugadores, Func<string, decimal> consultarSaldoOficial)
         {
             if (jugadores == null || consultarSaldoOficial == null)

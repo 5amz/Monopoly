@@ -14,17 +14,19 @@ public sealed class LectorHardwareSerial : IDisposable, IProveedorDados
     public event Action<EventoHardware>? EventoRecibido;
     public event Action<string>? ErrorLectura;
 
+// Crea el objeto.
     public LectorHardwareSerial(string puerto)
     {
         _serial = new SerialPort(puerto, 115200)
         {
             NewLine = "\n",
             ReadTimeout = 500,
-            // MicroPython reconoce al anfitrión USB CDC mediante DTR y vacía su búfer al conectar.
+            
             DtrEnable = true
         };
     }
 
+// Ejecuta Iniciar.
     public void Iniciar()
     {
         if (_serial.IsOpen) return;
@@ -34,9 +36,10 @@ public sealed class LectorHardwareSerial : IDisposable, IProveedorDados
         Task.Run(Escuchar);
     }
 
+// Ejecuta Escuchar.
     private void Escuchar()
     {
-        // Lectura acotada: una línea incompleta o corrupta no crece indefinidamente.
+        
         var linea = new System.Text.StringBuilder();
         bool descartar = false;
         while (!_detener)
@@ -65,7 +68,8 @@ public sealed class LectorHardwareSerial : IDisposable, IProveedorDados
         }
     }
 
-    /// <summary>Permite probar el mismo límite serial sin abrir COM1 ni otro puerto físico.</summary>
+    
+// Ejecuta ProcesarLineaRecibida.
     public bool ProcesarLineaRecibida(string linea)
     {
         if (!AnalizadorHardware.IntentarAnalizar(linea, out EventoHardware? evento)) return false;
@@ -78,18 +82,19 @@ public sealed class LectorHardwareSerial : IDisposable, IProveedorDados
         }
         catch (Exception ex)
         {
-            // Un evento válido puede disparar un fallo inesperado más adelante (reglas del
-            // juego, difusión a los clientes, etc.). Antes, esa excepción escapaba de aquí y
-            // tumbaba para siempre el bucle de Escuchar(): el Pico quedaba mudo el resto de la
-            // partida sin ningún aviso, aunque el proceso siguiera respondiendo con normalidad.
-            // Se reporta y se sigue leyendo; un evento puntual no debe apagar el puerto entero.
+            
+            
+            
+            
+            
             ErrorLectura?.Invoke("Evento de hardware rechazado: " + ex.Message);
         }
 
         return true;
     }
 
-    /// <summary>Entrega el último resultado físico y lo elimina para impedir reutilizarlo.</summary>
+    
+// Ejecuta IntentarConsumirResultado.
     public bool IntentarConsumirResultado(out ResultadoDados resultado)
     {
         lock (_bloqueoDados)
@@ -100,6 +105,7 @@ public sealed class LectorHardwareSerial : IDisposable, IProveedorDados
         }
     }
 
+// Ejecuta Dispose.
     public void Dispose()
     {
         _detener = true;

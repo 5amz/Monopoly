@@ -8,7 +8,7 @@ public sealed class TarjetaConfigurada
     public string IdJugador { get; set; } = "";
 }
 
-/// <summary>Decisiones configurables del equipo; estos montos no son requisitos del PDF.</summary>
+
 public sealed class ConfiguracionPartida
 {
     public decimal SaldoInicial { get; set; } = 1500000;
@@ -26,6 +26,7 @@ public sealed class ConfiguracionPartida
     public string RutaTransacciones { get; set; } = "transacciones-partida.txt";
     public TarjetaConfigurada[] Tarjetas { get; set; }
 
+// Ejecuta Copiar.
     internal ConfiguracionPartida Copiar()
     {
         Validar();
@@ -39,6 +40,7 @@ public sealed class ConfiguracionPartida
         return copia;
     }
 
+// Ejecuta Validar.
     public void Validar()
     {
         if (MaxTurnos < 1 || SaldoInicial < 0 || PremioInicio < 0 || Impuesto < 0 || ImpuestoEspecial < 0 ||
@@ -54,6 +56,7 @@ public sealed class ConfiguracionPartida
                     throw new ArgumentException("Cada tarjeta debe tener UID válido e IdJugador J1 a J4.");
     }
 
+// Ejecuta CrearRegistroTarjetas.
     internal RegistroTarjetasRFID CrearRegistroTarjetas()
     {
         var registro = new RegistroTarjetasRFID(incluirPredeterminadas: Tarjetas == null);
@@ -62,6 +65,7 @@ public sealed class ConfiguracionPartida
         return registro;
     }
 
+// Ejecuta CrearMazo.
     public MazoEventos CrearMazo()
     {
         var mazo = new MazoEventos();

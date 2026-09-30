@@ -12,14 +12,15 @@ public sealed class FragmentoMusical
     internal bool Omitida { get; set; }
 }
 
-// Solo conserva el documento externo. Cada fragmento se asigna al nodo que ya existe,
-// sin copiar las pistas a otra lista, diccionario o catálogo del juego.
+
+
 public sealed class ConfiguracionMusica : IDisposable
 {
     private JsonDocument? documento;
     public bool FondoActivado { get; private set; }
     public double SegundosPorCasilla { get; private set; } = .8;
 
+// Ejecuta Cargar.
     public static ConfiguracionMusica Cargar(string carpeta, Action<string> informar)
     {
         var resultado = new ConfiguracionMusica();
@@ -34,7 +35,7 @@ public sealed class ConfiguracionMusica : IDisposable
             if (Campo(raiz, "fondoActivado", out var fondo)) resultado.FondoActivado = fondo.GetBoolean();
             if (Campo(raiz, "segundosPorCasilla", out var segundos)) resultado.SegundosPorCasilla = segundos.GetDouble();
             if (Campo(raiz, "pistas", out var pistas) && pistas.ValueKind != JsonValueKind.Null)
-                foreach (var pista in pistas.EnumerateObject()) Leer(pista.Value); // Validación, sin catálogo intermedio.
+                foreach (var pista in pistas.EnumerateObject()) Leer(pista.Value); 
             if (!double.IsFinite(resultado.SegundosPorCasilla) || resultado.SegundosPorCasilla < .15 || resultado.SegundosPorCasilla > 5)
             {
                 informar("musica.json: segundosPorCasilla solo controla la ficha y debe estar entre 0.15 y 5; se usará 0.8. Se conservan los inicios y duraciones de las canciones.");
@@ -48,6 +49,7 @@ public sealed class ConfiguracionMusica : IDisposable
             return new ConfiguracionMusica();
         }
     }
+// Ejecuta Campo.
     private static bool Campo(JsonElement objeto, string nombre, out JsonElement valor)
     {
         valor = default; bool existe = false;
@@ -56,6 +58,7 @@ public sealed class ConfiguracionMusica : IDisposable
             if (campo.Name.Equals(nombre, StringComparison.OrdinalIgnoreCase)) { valor = campo.Value; existe = true; }
         return existe;
     }
+// Ejecuta Leer.
     private static FragmentoMusical? Leer(JsonElement valor)
     {
         if (valor.ValueKind == JsonValueKind.Null) return null;
@@ -66,23 +69,27 @@ public sealed class ConfiguracionMusica : IDisposable
         if (Campo(valor, "duracionSegundos", out var duracion)) fragmento.DuracionSegundos = duracion.GetDouble();
         return fragmento;
     }
+// Ejecuta Obtener.
     internal FragmentoMusical? Obtener(string clave, double duracion)
     {
         if (documento is not null && Campo(documento.RootElement, "pistas", out var pistas) && Campo(pistas, clave, out var pista))
             return Leer(pista);
         return new FragmentoMusical { Archivo = clave + ".mp3", DuracionSegundos = duracion };
     }
+// Ejecuta Aplicar.
     public void Aplicar(CasillaVista casilla)
     {
         if (ReferenceEquals(casilla.ConfiguracionMusical, this)) return;
         casilla.Musica = casilla.Tipo == "EVENTO" ? null : Obtener(casilla.Imagen, .8);
         casilla.ConfiguracionMusical = this;
     }
+// Ejecuta Aplicar.
     public void Aplicar(CartaVisible carta)
     {
         if (ReferenceEquals(carta.ConfiguracionMusical, this)) return;
         carta.Musica = carta.Imagen.Length == 0 ? null : Obtener(carta.Imagen, 5);
         carta.ConfiguracionMusical = this;
     }
+// Ejecuta Dispose.
     public void Dispose() { documento?.Dispose(); documento = null; }
 }

@@ -10,13 +10,15 @@ public sealed class Animacion
     public double Transcurrido { get; set; }
     public EfectoMultimedia? Efecto { get; }
     public DefinicionEfecto? Presentacion { get; }
+// Crea el objeto.
     internal Animacion(EfectoMultimedia efecto) : this(efecto.Jugador, 0, 0)
     {
         Efecto = efecto;
         Presentacion = ControladorMultimedia.Definir(efecto);
     }
 
-    // Prepara los datos que usa Animacion.
+    
+// Crea el objeto.
     public Animacion(string id, int desde, int pasos)
     {
         Id = id;
@@ -39,8 +41,9 @@ public sealed class MotorAnimacion
     private bool hardware;
     public event Action? Actualizado;
     public event Action<string, int>? CasillaAlcanzada;
-    // Solo velocidad visual; las reglas y posiciones siguen viniendo del servidor.
+    
     public double MilisegundosPorPaso { get; set; } = 150;
+// Ejecuta EstaMoviendo.
     public bool EstaMoviendo(string id)
     {
         lock (bloqueo)
@@ -60,7 +63,8 @@ public sealed class MotorAnimacion
         }
     }
 
-    // Guarda las caras de los dados que mandó el servidor.
+    
+// Ejecuta Dados.
     public void Dados(int uno, int dos, bool esHardware, int suma = 0)
     {
         lock (bloqueo)
@@ -72,7 +76,8 @@ public sealed class MotorAnimacion
         }
     }
 
-    // Prepara la animación entre las posiciones que mandó el servidor.
+    
+// Ejecuta Mover.
     public void Mover(string id, int desde, int hasta, bool pasoInicio, int cantidad)
     {
         int pasos = hasta - desde;
@@ -84,7 +89,8 @@ public sealed class MotorAnimacion
         Recorrido(id, desde, hasta, pasos, false);
     }
 
-    // Guarda el recorrido del servidor, incluyendo retrocesos y saltos.
+    
+// Ejecuta Recorrido.
     public void Recorrido(string id, int desde, int hasta, int pasos, bool salto)
     {
         lock (bloqueo)
@@ -106,7 +112,8 @@ public sealed class MotorAnimacion
         }
     }
 
-    // Avanza las animaciones usando el tiempo que recibe del reloj.
+    
+// Ejecuta Avanzar.
     public void Avanzar(double milisegundos, bool publicar = true)
     {
         Animacion? llegada = null;
@@ -126,19 +133,22 @@ public sealed class MotorAnimacion
                 else llegada = animacion;
             }
         }
-        // Solo al terminar el recorrido: las casillas intermedias no activan música.
-        // Si un tick completa varios recorridos, se reproduce el último destino alcanzado.
+        
+        
         if (llegada is not null) CasillaAlcanzada?.Invoke(llegada.Id, llegada.Desde + llegada.Pasos);
         if (publicar) Publicar();
     }
+// Ejecuta Publicar.
     public void Publicar() => Actualizado?.Invoke();
 
+// Ejecuta EncolarEfecto.
     public void EncolarEfecto(EfectoMultimedia efecto)
     {
         lock (bloqueo)
             if (!cola.Encolar(new Animacion(efecto))) throw new InvalidOperationException("La cola de animaciones esta llena.");
     }
-    // Las solicitudes de música comparten la cola enlazada original de recorridos.
+    
+// Ejecuta ExtraerMusicaPendiente.
     public EfectoMultimedia? ExtraerMusicaPendiente()
     {
         lock (bloqueo)
@@ -154,11 +164,13 @@ public sealed class MotorAnimacion
             return sonido;
         }
     }
+// Ejecuta AgregarPresentacion.
     public void AgregarPresentacion(ListaSimple<ElementoEscena> elementos)
     {
         elementos.Agregar(new ElementoEscena("CONTROL", new Rectangulo(0, 0, 0, 0), TextoSilencio, "silenciar"));
         elementos.Agregar(new ElementoEscena("CONTROL", new Rectangulo(0, 0, 0, 0), TextoFondo, "fondo"));
     }
+// Ejecuta QuitarEfectos.
     public void QuitarEfectos()
     {
         lock (bloqueo)
@@ -172,7 +184,8 @@ public sealed class MotorAnimacion
         }
     }
 
-    // Devuelve los dados recibidos, sin generar números al azar.
+    
+// Ejecuta ObtenerDados.
     public (int Uno, int Dos, bool Hardware) ObtenerDados()
     {
         lock (bloqueo)
@@ -181,7 +194,8 @@ public sealed class MotorAnimacion
         }
     }
 
-    // Devuelve dónde se dibuja la ficha sin cambiar su posición oficial.
+    
+// Ejecuta PosicionVisual.
     public double PosicionVisual(string id, int posicionOficial, int cantidad)
     {
         lock (bloqueo)
@@ -199,7 +213,8 @@ public sealed class MotorAnimacion
         return posicionOficial;
     }
 
-    // Borra las animaciones cuando se vuelve a cargar el estado.
+    
+// Ejecuta Reiniciar.
     public void Reiniciar()
     {
         lock (bloqueo)
