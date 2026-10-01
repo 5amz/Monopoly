@@ -274,6 +274,7 @@ namespace Monopoly
 
             JugadorTablero ganador = null;
             decimal maxPatrimonio = decimal.MinValue;
+            bool empate = false;
             for (int i = 0; i < jugadores.Length; i++)
             {
                 JugadorTablero jugador = jugadores[i];
@@ -285,10 +286,58 @@ namespace Monopoly
                 {
                     ganador = jugador;
                     maxPatrimonio = patrimonio;
+                    empate = false;
+                }
+                else if (patrimonio == maxPatrimonio)
+                {
+                    empate = true;
                 }
             }
 
-            return ganador;
+            if (!empate)
+                return ganador;
+
+            // Desempate: los jugadores empatados quedan marcados en este arreglo.
+            bool[] empatados = new bool[jugadores.Length];
+            for (int i = 0; i < jugadores.Length; i++)
+            {
+                JugadorTablero jugador = jugadores[i];
+                empatados[i] = jugador is not null && jugador.Activo
+                    && CalcularPatrimonio(jugador, consultarSaldoOficial(jugador.IdJugador)) == maxPatrimonio;
+            }
+            return Desempatar(jugadores, empatados);
+        }
+
+// Ejecuta Desempatar: los empatados tiran dos dados hasta que uno saque una suma mayor que los demás.
+        private JugadorTablero Desempatar(JugadorTablero[] jugadores, bool[] empatados)
+        {
+            Random dados = new Random();
+            while (true)
+            {
+                JugadorTablero mejor = null;
+                int mejorSuma = 0;
+                bool repetida = false;
+                for (int i = 0; i < jugadores.Length; i++)
+                {
+                    if (!empatados[i])
+                        continue;
+
+                    int suma = dados.Next(1, 7) + dados.Next(1, 7);
+                    if (mejor is null || suma > mejorSuma)
+                    {
+                        mejor = jugadores[i];
+                        mejorSuma = suma;
+                        repetida = false;
+                    }
+                    else if (suma == mejorSuma)
+                    {
+                        repetida = true;
+                    }
+                }
+
+                if (!repetida)
+                    return mejor;
+            }
         }
     }
 }
